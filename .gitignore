@@ -1,0 +1,10 @@
+.env
+
+doc-server/node_modules
+doc-server/.env
+doc-server/package-lock.json
+
+
+gurumaa_app/.env
+gurumaa_app/node_modules
+gurumaa_app/package-lock.json

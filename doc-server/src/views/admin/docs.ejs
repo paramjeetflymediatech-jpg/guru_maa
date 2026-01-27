@@ -1,0 +1,38 @@
+ 
+
+<p><a href="/admin/logout">Logout</a></p>
+
+<h2>Upload new document</h2>
+<form method="post" action="/admin/docs/upload" enctype="multipart/form-data">
+  <input type="file" name="file" />
+  <button type="submit">Upload</button>
+</form>
+
+<h2>Existing documents</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Folder</th>
+      <th>Type</th>
+      <th>URL</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% docs.forEach(function(doc) { %>
+      <tr>
+        <td><%= doc.title %></td>
+        <td><%= doc.folder || '' %></td>
+        <td><%= doc.type %></td>
+        <td><a href="<%= doc.url %>" target="_blank">Open</a></td>
+        <td>
+          <form method="post" action="/admin/docs/delete" style="display:inline;">
+            <input type="hidden" name="id" value="<%= doc.id %>" />
+            <button type="submit" onclick="return confirm('Delete this file?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
