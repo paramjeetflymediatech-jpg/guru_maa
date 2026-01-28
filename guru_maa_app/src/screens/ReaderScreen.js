@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
+  Linking,
 } from 'react-native';
 
 // Very simple in-memory content for demo purposes.
@@ -26,8 +28,31 @@ Maa used to give flower petals as Prasad and this Prasad worked like divine bles
 };
 
 function ReaderScreen({ route }) {
-  const { docId, title, totalPages = 1 } = route.params || {};
+  const {
+    docId,
+    title,
+    totalPages = 1,
+    type = 'text',
+    url,
+  } = route.params || {};
   const [currentPage, setCurrentPage] = useState(1);
+
+  const handleOpenExternal = () => {
+    if (!url) {
+      Alert.alert(
+        'No document URL',
+        'This document does not have a URL configured yet.',
+      );
+      return;
+    }
+
+    Linking.openURL(url).catch(() => {
+      Alert.alert(
+        'Cannot open document',
+        'There was a problem opening this file.',
+      );
+    });
+  };
 
   const pages = useMemo(() => {
     const arr = [];
@@ -44,38 +69,58 @@ function ReaderScreen({ route }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.pageLabel}>
-        Page {currentPage} of {totalPages}
-      </Text>
+      {type === 'text' && (
+        <Text style={styles.pageLabel}>
+          Page {currentPage} of {totalPages}
+        </Text>
+      )}
 
-      <ScrollView
-        style={styles.contentBox}
-        contentContainerStyle={styles.contentInner}
-      >
-        <Text style={styles.contentText}>{pageContent}</Text>
-      </ScrollView>
-
-      <View style={styles.pageSelector}>
-        {pages.map(page => (
-          <TouchableOpacity
-            key={page}
-            style={[
-              styles.pageButton,
-              page === currentPage && styles.pageButtonActive,
-            ]}
-            onPress={() => setCurrentPage(page)}
+      {type === 'text' ? (
+        <>
+          <ScrollView
+            style={styles.contentBox}
+            contentContainerStyle={styles.contentInner}
           >
-            <Text
-              style={[
-                styles.pageButtonText,
-                page === currentPage && styles.pageButtonTextActive,
-              ]}
-            >
-              {page}
-            </Text>
+            <Text style={styles.contentText}>{pageContent}</Text>
+          </ScrollView>
+
+          <View style={styles.pageSelector}>
+            {pages.map(page => (
+              <TouchableOpacity
+                key={page}
+                style={[
+                  styles.pageButton,
+                  page === currentPage && styles.pageButtonActive,
+                ]}
+                onPress={() => setCurrentPage(page)}
+              >
+                <Text
+                  style={[
+                    styles.pageButtonText,
+                    page === currentPage && styles.pageButtonTextActive,
+                  ]}
+                >
+                  {page}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      ) : (
+        <View style={styles.nonTextContainer}>
+          <Text style={styles.nonTextTitle}>Document type: {type}</Text>
+          <Text style={styles.nonTextDescription}>
+            This document will be opened using your device's default app for
+            this file type.
+          </Text>
+          <TouchableOpacity
+            style={styles.externalButton}
+            onPress={handleOpenExternal}
+          >
+            <Text style={styles.externalButtonText}>Open document</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -140,6 +185,40 @@ const styles = StyleSheet.create({
   pageButtonTextActive: {
     color: '#3B2A00',
     fontWeight: 'bold',
+  },
+  nonTextContainer: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0D7C7',
+    backgroundColor: '#FFFEFA',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nonTextTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  nonTextDescription: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  externalButton: {
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#275fb4',
+  },
+  externalButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
 

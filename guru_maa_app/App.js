@@ -9,6 +9,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+// Screens
+import AuthLoadingScreen from './src/screens/AuthLoadingScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -24,18 +26,44 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding">
+        <Stack.Navigator
+          initialRouteName="AuthLoading"
+          screenOptions={{
+            headerBackTitleVisible: false,
+          }}
+        >
+          {/* 🔐 Auth check */}
+          <Stack.Screen
+            name="AuthLoading"
+            component={AuthLoadingScreen}
+            options={{ headerShown: false }}
+          />
+
+          {/* 🚀 Onboarding */}
           <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
             options={{ headerShown: false }}
           />
+
+          {/* 🔑 Authentication */}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="EnterOtp" component={EnterOtpScreen} />
-          <Stack.Screen name="Library" component={LibraryScreen} options={{ title: 'Library' }} />
-          <Stack.Screen name="Reader" component={ReaderScreen} options={{ title: 'Reader' }} />
+
+          {/* 📚 Main App */}
+          <Stack.Screen
+            name="Library"
+            component={LibraryScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Reader"
+            component={ReaderScreen}
+            options={{ title: 'Reader' }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

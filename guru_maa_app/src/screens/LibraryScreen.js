@@ -1,25 +1,37 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
-// For now, some sample religious documents. Later you can load this from API.
+// For now, some sample religious documents. Later you can load this from API or backend.
+// Each doc has a "type" so the reader can render different formats (text, pdf, audio, etc.).
 const SAMPLE_DOCS = [
   {
     id: 'gita-1',
     title: 'Bhagavad Gita',
     subtitle: '18 chapters of divine wisdom',
     totalPages: 18,
+    type: 'text',
   },
   {
     id: 'mantra-1',
     title: 'Morning Mantras',
     subtitle: 'Daily morning prayers and chants',
     totalPages: 5,
+    type: 'text',
   },
   {
     id: 'aarti-1',
     title: 'Evening Aarti',
     subtitle: 'Evening devotional songs and aarti',
     totalPages: 7,
+    type: 'text',
+  },
+  {
+    id: 'sample-pdf-1',
+    title: 'Sample PDF (to be wired later)',
+    subtitle: 'Example of a non-text document type',
+    totalPages: 1,
+    type: 'pdf',
+    url: 'https://example.com/sample.pdf', // replace with real PDF URL or local file path
   },
 ];
 
@@ -32,6 +44,8 @@ function LibraryScreen({ navigation }) {
           docId: item.id,
           title: item.title,
           totalPages: item.totalPages,
+          type: item.type,
+          url: item.url,
         })
       }>
       <Text style={styles.cardTitle}>{item.title}</Text>

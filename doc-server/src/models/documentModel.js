@@ -23,8 +23,9 @@ function walkDocs(currentDir, relativeDir = '') {
       items.push(...walkDocs(fullPath, relPath));
     } else {
       const ext = path.extname(entry.name).toLowerCase();
-      if (ext === '.pdf' || ext === '.doc' || ext === '.docx') {
-        const type = ext === '.pdf' ? 'pdf' : 'doc';
+      if (ext) {
+        // const type = ext === '.pdf' ? 'pdf' : 'doc';
+        const type = ext ;
         const title = path.basename(entry.name, ext);
         const urlPath = relPath.replace(/\\/g, '/');
 
