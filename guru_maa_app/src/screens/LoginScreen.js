@@ -11,6 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import Logo from './logoscreen';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginUser } from '../api/auth.api';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,26 +26,37 @@ function LoginScreen({ navigation }) {
       Alert.alert('Validation Error', 'Email and password are required');
       return;
     }
-
     try {
       setLoading(true);
-
       const response = await loginUser({
         email: email.trim(),
         password,
       });
+      let user = response?.data?.user;
 
+      if (!user.isVerified) {
+        Alert.alert(
+          'Login Failed',
+          response?.data?.message || 'OTP verification required',
+        );
+        return navigation.reset({
+          index: 0,
+          routes: [{ name: 'EnterOtp' }],
+        });
+      }
       // 👉 Store token if API returns it
-      // await AsyncStorage.setItem('token', response.token);
-
+      if (response?.data?.token) {
+        await AsyncStorage.setItem('token', response?.data?.token);
+      }
       navigation.reset({
         index: 0,
         routes: [{ name: 'Library' }],
       });
     } catch (error) {
+      console.log(error, 'ererrr');
       Alert.alert(
         'Login Failed',
-        error?.response?.data?.message || 'Invalid email or password'
+        error?.response?.data?.message || 'Invalid email or password',
       );
     } finally {
       setLoading(false);

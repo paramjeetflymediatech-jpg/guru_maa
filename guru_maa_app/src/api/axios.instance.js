@@ -8,6 +8,7 @@ const DEV_HOST =
     ? 'http://10.0.2.2:4000' // Android emulator -> host machine
     : 'http://localhost:4000'; // iOS simulator / Metro same machine
 
+console.log(DEV_HOST, 'sss');
 const API = axios.create({
   baseURL: `${DEV_HOST}/api`,
   timeout: 15000,
