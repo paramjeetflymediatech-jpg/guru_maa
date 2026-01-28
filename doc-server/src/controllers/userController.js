@@ -5,19 +5,13 @@ const {
   updateUser,
   deleteUser,
   findUserByEmail,
-  findUserByToken,
-} = require("../models/userModel");
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const {
-  EMAIL_HOST,
-  EMAIL_PORT,
-  EMAIL_USER,
-  EMAIL_PASS,
-  EMAIL_SECURE,
-  BASE_URL,
-} = require("../config/config");
-
+  updateUserByToken,
+  findUserByToken
+} = require('../models/userModel');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SECURE, BASE_URL } = require('../config/config');
+ 
 // Email Transporter
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
