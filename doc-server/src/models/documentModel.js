@@ -1,4 +1,4 @@
-// src/models/documentModel.js
+const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const { BASE_URL } = require('../config/config');
@@ -8,57 +8,92 @@ const DOCS_ROOT = path.join(__dirname, '..', '..', 'public', 'docs');
 // Ensure docs folder exists
 if (!fs.existsSync(DOCS_ROOT)) {
   fs.mkdirSync(DOCS_ROOT, { recursive: true });
-  console.log('Created docs directory at:', DOCS_ROOT);
 }
 
-function walkDocs(currentDir, relativeDir = '') {
-  const items = [];
-  const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+// Mongoose Schema
+const documentSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  filename: { type: String, required: true }, // Stored on disk
+  originalName: { type: String },
+  mimeType: { type: String },
+  size: { type: Number },
+  folder: { type: String, default: null }, // For future folder categorization
+  createdAt: { type: Date, default: Date.now }
+});
 
-  for (const entry of entries) {
-    const fullPath = path.join(currentDir, entry.name);
-    const relPath = relativeDir ? path.join(relativeDir, entry.name) : entry.name;
+// Virtual property for URL
+documentSchema.virtual('url').get(function () {
+  return `${BASE_URL}/docs/${this.filename}`;
+});
 
-    if (entry.isDirectory()) {
-      items.push(...walkDocs(fullPath, relPath));
-    } else {
-      const ext = path.extname(entry.name).toLowerCase();
-      if (ext) {
-        // const type = ext === '.pdf' ? 'pdf' : 'doc';
-        const type = ext ;
-        const title = path.basename(entry.name, ext);
-        const urlPath = relPath.replace(/\\/g, '/');
+// Virtual property for type (derived from mimetype or extension)
+documentSchema.virtual('type').get(function () {
+  if (this.mimeType === 'application/pdf') return 'pdf';
+  return 'doc'; // simplified
+});
 
-        items.push({
-          id: relPath, // use relative path as ID
-          title,
-          description: relativeDir || '',
-          url: `${BASE_URL}/docs/${urlPath}`,
-          type,
-          folder: relativeDir || null,
-        });
-      }
+const Document = mongoose.model('Document', documentSchema);
+
+// Service functions (Wrappers)
+
+async function getAllDocuments() {
+  // Return plain objects with virtuals invoked if possible, or just the docs
+  // Mongoose documents need .toObject({ virtuals: true }) or similar to serialize virtuals
+  // But standard find returns Documents. When passed to EJS, we access properties.
+  return await Document.find().sort({ createdAt: -1 });
+}
+
+async function getPaginatedDocuments(page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const docs = await Document.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+  const total = await Document.countDocuments();
+  return {
+    docs,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalDocs: total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
+}
+
+async function createDocument(fileData) {
+  const doc = new Document(fileData);
+  return await doc.save();
+}
+
+async function deleteDocument(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return false;
+
+  const doc = await Document.findById(id);
+  if (!doc) return false;
+
+  // Delete file from disk
+  const fullPath = path.join(DOCS_ROOT, doc.filename);
+  if (fs.existsSync(fullPath)) {
+    try {
+      fs.unlinkSync(fullPath);
+    } catch (err) {
+      console.error("Failed to delete file from disk:", err);
     }
   }
 
-  return items;
+  // Delete from DB
+  await Document.findByIdAndDelete(id);
+  return true;
 }
 
-function getAllDocuments() {
-  return walkDocs(DOCS_ROOT, '');
-}
-
-function deleteDocument(relativePath) {
-  const fullPath = path.join(DOCS_ROOT, relativePath);
-  if (fs.existsSync(fullPath)) {
-    fs.unlinkSync(fullPath);
-    return true;
-  }
-  return false;
+async function getDocumentCount() {
+  return await Document.countDocuments();
 }
 
 module.exports = {
   DOCS_ROOT,
+  Document,
   getAllDocuments,
+  getPaginatedDocuments,
+  createDocument,
   deleteDocument,
+  getDocumentCount
 };

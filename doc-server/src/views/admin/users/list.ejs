@@ -5,18 +5,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management - Guru Maa Admin</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-body: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #1e293b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', "Segoe UI", sans-serif;
         }
 
         body {
-            background: #f5f7fa;
-            color: #333;
+            background-color: var(--bg-body);
+            color: var(--text-main);
         }
 
         .admin-layout {
@@ -27,63 +46,67 @@
         .main-content {
             flex: 1;
             margin-left: 260px;
-            padding: 30px;
+            padding: 40px;
+            transition: margin-left 0.3s ease;
         }
 
-        @media (max-width: 768px) {
+        /* Responsive Main Content */
+        @media (max-width: 992px) {
             .main-content {
                 margin-left: 0;
                 padding: 20px;
             }
         }
 
+        /* Header Section */
         .page-header {
-            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 32px;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 16px;
         }
 
-        .page-header h1 {
-            margin: 0 0 8px 0;
+        .page-header div h1 {
             font-size: 28px;
-            color: #2c3e50;
+            font-weight: 700;
+            color: black;
+            margin-bottom: 4px;
         }
 
-        .page-header p {
-            margin: 0;
-            color: #7f8c8d;
+        .page-header div p {
+            color: var(--text-muted);
             font-size: 14px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .btn-add {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            text-decoration: none;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            text-decoration: none;
-            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            transition: var(--transition);
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
+        .btn-add:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
         }
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            margin-bottom: 25px;
+        /* Card & Table */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            /* For rounded corners on table */
         }
 
         table {
@@ -92,82 +115,131 @@
             font-size: 14px;
         }
 
-        thead {
-            background: #667eea;
+        th {
+            background: #544FE8;
             color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+
         }
 
-        th,
         td {
-            padding: 12px 14px;
-            text-align: left;
+            padding: 16px 24px;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
         }
 
         tbody tr {
-            border-bottom: 1px solid #eee;
-            transition: 0.15s;
+            transition: background-color 0.2s;
         }
 
         tbody tr:hover {
-            background: #f7f9ff;
+            background-color: #f8fafc;
         }
 
-        .badge {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-admin {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .badge-user {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .badge-active {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .badge-inactive {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .action-group {
+        /* User Info Cell (Avatar + Text) */
+        .user-cell {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
         }
 
-        .btn-edit {
-            background: #ff9800;
-            color: white;
-            border: none;
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: #e0e7ff;
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-info div {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: #111827;
+        }
+
+        /* Badges */
+        .badge {
             padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
+            border-radius: 10px;
             font-size: 12px;
-            text-decoration: none;
+            font-weight: 600;
             display: inline-block;
         }
 
-        .btn-delete {
-            background: #f44336;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
+        .badge-active {
+            background: #dcfce7;
+            color: #166534;
         }
 
-        /* Responsive */
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-admin {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge-user {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Actions */
+        .action-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon.edit:hover {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .btn-icon.delete:hover {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        /* Mobile / Responsive View */
         @media (max-width: 768px) {
+            .table-card {
+                background: transparent;
+                box-shadow: none;
+            }
 
             table,
             thead,
@@ -183,30 +255,83 @@
             }
 
             tbody tr {
-                margin-bottom: 12px;
-                border-radius: 10px;
-                padding: 10px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                border: 1px solid #eee;
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
             }
 
             td {
-                padding: 8px 0;
+                padding: 0;
+                border: none;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                flex-wrap: wrap;
+            }
+
+            /* Hide labels for name cell as it's self-evident */
+            td[data-label="Name"] {
+                margin-bottom: 8px;
+                border-bottom: 1px solid #f1f5f9;
+                padding-bottom: 12px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            td[data-label="Name"]::before {
+                display: none;
+            }
+
+            td[data-label="Email"],
+            td[data-label="Role"],
+            td[data-label="Status"] {
+                width: 100%;
+                border-bottom: 1px dashed #f1f5f9;
+                padding-bottom: 8px;
             }
 
             td::before {
                 content: attr(data-label);
-                font-weight: 600;
-                color: #555;
                 font-size: 12px;
-                margin-right: 10px;
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            td[data-label="Actions"] {
+                margin-top: 10px;
+                justify-content: flex-end;
+                width: 100%;
             }
 
             .action-group {
-                justify-content: flex-end;
+                width: 100%;
+                gap: 12px;
+            }
+
+            .btn-icon {
+                flex: 1;
+                padding: 10px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 13px;
+                justify-content: center;
+            }
+
+            .btn-icon.edit {
+                background: #eff6ff;
+                color: var(--primary);
+            }
+
+            .btn-icon.delete {
+                background: #fef2f2;
+                color: var(--danger);
             }
         }
     </style>
@@ -220,21 +345,23 @@
             <div class="main-content">
                 <div class="page-header">
                     <div>
-                        <h1>👥 User Management</h1>
-                        <p>Manage admin access and users</p>
+                        <h1>Users</h1>
+                        <p>
+                            <%= users.length %> registered users
+                        </p>
                     </div>
-                    <a href="/admin/users/create" class="btn-primary">
-                        ➕ Add User
+                    <a href="/admin/users/create" class="btn-add">
+                        <span>+</span> Add New User
                     </a>
                 </div>
 
-                <!-- User Table -->
-                <div class="card">
+                <!-- User List -->
+                <div class="table-card">
                     <% if (users && users.length> 0) { %>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th>User</th>
                                     <th>Email</th>
                                     <th>Role</th>
                                     <th>Status</th>
@@ -245,10 +372,22 @@
                                 <% users.forEach(user=> { %>
                                     <tr>
                                         <td data-label="Name">
-                                            <%= user.name %>
+                                            <div class="user-cell">
+                                                <div class="user-avatar">
+                                                    <%= user.name.charAt(0).toUpperCase() %>
+                                                </div>
+                                                <div class="user-info">
+                                                    <div>
+                                                        <%= user.name %>
+                                                    </div>
+                                                    <!-- Optional: Show ID or Date on mobile if needed -->
+                                                </div>
+                                            </div>
                                         </td>
                                         <td data-label="Email">
-                                            <%= user.email %>
+                                            <span class="user-email">
+                                                <%= user.email %>
+                                            </span>
                                         </td>
                                         <td data-label="Role">
                                             <span class="badge badge-<%= user.role %>">
@@ -262,15 +401,19 @@
                                         </td>
                                         <td data-label="Actions">
                                             <div class="action-group">
-                                                <a href="/admin/users/edit/<%= user.id %>" class="btn-edit">
-                                                    ✏️ Edit
+                                                <a href="/admin/users/edit/<%= user.id %>" class="btn-icon edit"
+                                                    title="Edit">
+                                                    <span
+                                                        style="margin-left:5px; @media(min-width:769px){display:none}">Edit</span>
                                                 </a>
                                                 <form method="post" action="/admin/users/delete"
-                                                    style="display:inline;">
+                                                    style="display:inline; width: 100%;">
                                                     <input type="hidden" name="id" value="<%= user.id %>">
-                                                    <button type="submit" class="btn-delete"
-                                                        onclick="return confirm('Delete this user?')">
-                                                        🗑️ Delete
+                                                    <button type="submit" class="btn-icon delete"
+                                                        onclick="return confirm('Only Admins can delete users. Proceed?')"
+                                                        title="Delete">
+                                                        <span
+                                                            style="margin-left:5px; @media(min-width:769px){display:none}">Delete</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -280,11 +423,17 @@
                             </tbody>
                         </table>
                         <% } else { %>
-                            <div style="text-align:center; padding: 40px; color:#777;">
-                                <div style="font-size:40px; margin-bottom:10px;">👥</div>
-                                No users found.
+                            <div style="text-align:center; padding: 60px 20px;">
+                                <div style="font-size:48px; margin-bottom:16px; opacity: 0.5;">👥</div>
+                                <h3 style="color:var(--text-main); margin-bottom: 8px;">No users found</h3>
+                                <p style="color:var(--text-muted); margin-bottom: 24px;">Get started by adding a new
+                                    user to the system.</p>
+                                <a href="/admin/users/create" class="btn-add">Add First User</a>
                             </div>
                             <% } %>
+
+                                <!-- Pagination Partial -->
+                                <%- include('../layouts/pagination') %>
                 </div>
             </div>
     </div>

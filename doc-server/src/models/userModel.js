@@ -23,8 +23,26 @@ const userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    password: {
+        type: String,
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
+
+const bcrypt = require('bcryptjs');
+
+// Hash password before saving
+userSchema.pre('save', async function () {
+    if (!this.isModified('password')) return;
+    this.password = await bcrypt.hash(this.password, 10);
+});
+
+// Method to check password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
 
 const User = mongoose.model('User', userSchema);
 
@@ -32,6 +50,21 @@ const User = mongoose.model('User', userSchema);
 
 async function getAllUsers() {
     return await User.find().sort({ createdAt: -1 });
+}
+
+async function getPaginatedUsers(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const users = await User.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await User.countDocuments();
+    return {
+        users,
+        pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            totalDocs: total,
+            totalPages: Math.ceil(total / limit)
+        }
+    };
 }
 
 async function getUserById(id) {
@@ -64,9 +97,26 @@ async function findUserByEmail(email) {
 module.exports = {
     User, // Exporting the model itself too, just in case
     getAllUsers,
+    getPaginatedUsers,
     getUserById,
     createUser,
     updateUser,
     deleteUser,
-    findUserByEmail
+    findUserByEmail,
+    updateUserByToken,
+    findUserByToken,
 };
+
+async function updateUserByToken(token, updateData) {
+    return await User.findOneAndUpdate({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+    }, updateData, { new: true });
+}
+
+async function findUserByToken(token) {
+    return await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+}
