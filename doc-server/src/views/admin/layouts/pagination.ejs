@@ -1,0 +1,93 @@
+<% if (typeof pagination !=='undefined' && pagination.totalPages> 1) { %>
+    <style>
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .pagination-btn.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .pagination-info {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+
+        @media (max-width: 640px) {
+            .pagination-info {
+                display: none;
+            }
+        }
+    </style>
+
+    <div class="pagination-container">
+        <!-- Previous Button -->
+        <a href="?page=<%= pagination.page - 1 %>&limit=<%= pagination.limit %>"
+            class="pagination-btn <%= pagination.page <= 1 ? 'disabled' : '' %>">
+            &laquo; Prev
+        </a>
+
+        <!-- Page Numbers -->
+        <% let startPage=Math.max(1, pagination.page - 2); let endPage=Math.min(pagination.totalPages, pagination.page +
+            2); if (startPage> 1) { %>
+            <a href="?page=1&limit=<%= pagination.limit %>" class="pagination-btn">1</a>
+            <% if (startPage> 2) { %>
+                <span class="pagination-dots">...</span>
+                <% } %>
+                    <% } for(let i=startPage; i <=endPage; i++) { %>
+                        <a href="?page=<%= i %>&limit=<%= pagination.limit %>"
+                            class="pagination-btn <%= pagination.page === i ? 'active' : '' %>">
+                            <%= i %>
+                        </a>
+                        <% } if (endPage < pagination.totalPages) { %>
+                            <% if (endPage < pagination.totalPages - 1) { %>
+                                <span class="pagination-dots">...</span>
+                                <% } %>
+                                    <a href="?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %>"
+                                        class="pagination-btn">
+                                        <%= pagination.totalPages %>
+                                    </a>
+                                    <% } %>
+
+                                        <!-- Next Button -->
+                                        <a href="?page=<%= pagination.page + 1 %>&limit=<%= pagination.limit %>"
+                                            class="pagination-btn <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>">
+                                            Next &raquo;
+                                        </a>
+
+                                        <span class="pagination-info">
+                                            Page <%= pagination.page %> of <%= pagination.totalPages %>
+                                                    (<%= pagination.totalDocs %> items)
+                                        </span>
+    </div>
+    <% } %>
