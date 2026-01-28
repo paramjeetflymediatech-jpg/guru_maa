@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "name": "Admin User",
+    "email": "admin@gurumaa.com",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2024-01-01T10:00:00.000Z"
+  },
+  {
+    "id": "1769591827581",
+    "name": "test",
+    "email": "admin@yopmail.com",
+    "role": "user",
+    "status": "inactive",
+    "createdAt": "2026-01-28T09:17:07.581Z"
+  },
+  {
+    "id": "1769591858989",
+    "name": "test",
+    "email": "admin@yopmail.com",
+    "role": "user",
+    "status": "inactive",
+    "createdAt": "2026-01-28T09:17:38.989Z"
+  },
+  {
+    "id": "1769592355857",
+    "name": "test",
+    "email": "admin@roofservice.com",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2026-01-28T09:25:55.857Z"
+  },
+  {
+    "id": "1769592677701",
+    "name": "testdsad",
+    "email": "adminADASAsdsa@yopmail.com",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2026-01-28T09:31:17.701Z"
+  }
+]

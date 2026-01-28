@@ -1,0 +1,85 @@
+<style>
+  .card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+  }
+
+  .card h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 12px;
+  }
+
+  .status-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .status-list li {
+    padding: 16px;
+    border-bottom: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .status-list li:last-child {
+    border-bottom: none;
+  }
+
+  .status-info strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #2c3e50;
+  }
+
+  .status-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 12px;
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+  }
+
+  .status-badge.active {
+    background: #27ae60;
+    color: white;
+  }
+
+  .status-badge.inactive {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .status-badge.warning {
+    background: #f39c12;
+    color: white;
+  }
+</style>
+
+<div class="card">
+  <h2><%= title %></h2>
+  <ul class="status-list">
+    <% statuses.forEach(function(status) { %>
+      <li>
+        <div class="status-info">
+          <strong><%= status.label %></strong>
+          <p><%= status.description %></p>
+        </div>
+        <span class="status-badge <%= status.type %>">✓ <%= status.status %></span>
+      </li>
+    <% }) %>
+  </ul>
+</div>

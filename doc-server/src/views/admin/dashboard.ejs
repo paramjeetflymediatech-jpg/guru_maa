@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= title %> - Guru Maa Admin
+  </title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      padding: 25px;
+      transition: 0.3s;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      margin-bottom: 25px;
+    }
+
+    .page-header h1 {
+      font-size: 26px;
+      color: #2c3e50;
+      margin-bottom: 6px;
+    }
+
+    .page-header p {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: #fff;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      transition: 0.25s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-icon {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      color: #27ae60;
+      margin-top: 6px;
+    }
+
+    /* CARDS */
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+
+    /* QUICK ACTIONS */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .quick-action-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      text-decoration: none;
+      padding: 14px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      transition: 0.25s;
+    }
+
+    .quick-action-btn:hover {
+      transform: translateY(-3px);
+      opacity: 0.95;
+    }
+
+    /* LIST */
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .action-btn {
+      background: #667eea;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .action-btn:hover {
+      background: #764ba2;
+    }
+
+    .status-badge {
+      background: #27ae60;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 25px;
+      color: #7f8c8d;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+
+  <div class="admin-layout">
+    <!-- SIDEBAR -->
+    <%- include('./layouts/sidebar', { currentPage: 'dashboard' }) %>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+          <h1>
+            <%= title %>
+          </h1>
+          <p>
+            <%= subtitle %>
+          </p>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+          <% stats.forEach(stat=> { %>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <%= stat.icon %>
+              </div>
+              <div class="stat-label">
+                <%= stat.label %>
+              </div>
+              <div class="stat-value">
+                <%= stat.value %>
+              </div>
+              <div class="stat-change">
+                <%= stat.change %>
+              </div>
+            </div>
+            <% }) %>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="card">
+          <h2>⚡ Quick Actions</h2>
+          <div class="quick-actions">
+            <% actions.forEach(action=> { %>
+              <a href="<%= action.link %>" class="quick-action-btn">
+                <span>
+                  <%= action.icon %>
+                </span>
+                <span>
+                  <%= action.label %>
+                </span>
+              </a>
+              <% }) %>
+          </div>
+        </div>
+
+        <!-- RECENT DOCUMENTS -->
+        <div class="card">
+          <h2>📄 Recent Documents</h2>
+
+          <% if (recentDocs && recentDocs.length) { %>
+            <% recentDocs.forEach(doc=> { %>
+              <div class="list-item">
+                <div>
+                  <strong>
+                    <%= doc.title || doc.name || 'Untitled' %>
+                  </strong><br>
+                  <small style="color:#7f8c8d;">
+                    <%= doc.folder || 'Root' %>
+                  </small>
+                </div>
+                <a href="<%= doc.url %>" target="_blank" class="action-btn">View</a>
+              </div>
+              <% }) %>
+                <% } else { %>
+                  <div class="empty">No documents yet 📭</div>
+                  <% } %>
+        </div>
+      </div>
+  </div>
+
+  <%- include('./layouts/flash-toast') %>
+
+</body>
+
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - Guru Maa Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --sidebar-bg: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #fbbf24;
+            --glass: rgba(255, 255, 255, 0.08);
+            --transition: all 0.3s ease;
+
+            --gradient-primary: linear-gradient(135deg, #6366f1, #4f46e5, #9333ea);
+            --gradient-bg: linear-gradient(135deg, #eef2ff, #f8fafc);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: var(--gradient-bg);
+            color: #1f2937;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 40px;
+            transition: var(--transition);
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 30px;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            color: #6b7280;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .card {
+            max-width: 650px;
+            margin: auto;
+            padding: 32px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 14px;
+            background: #fff;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            cursor: pointer;
+            background: var(--gradient-primary);
+            transition: var(--transition);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.45);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 18px;
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 576px) {
+            .card {
+                padding: 22px;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+        <%- include('../layouts/sidebar', { currentPage: 'users' }) %>
+
+            <div class="main-content">
+                <a href="/admin/users" class="btn-back">← Back to Users</a>
+
+                <div class="page-header">
+                    <h1>Add New User</h1>
+                    <p>Create a new administrator or standard user</p>
+                </div>
+
+                <div class="card">
+                    <form id="createUserForm" action="/admin/users/create" method="post" novalidate>
+
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="name" id="name" required placeholder="e.g. John Doe"
+                                value="<%= locals.formData ? formData.name : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" id="email" required placeholder="e.g. john@example.com"
+                                value="<%= locals.formData ? formData.email : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select name="role">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Account Status</label>
+                            <select name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary">Create User</button>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+    <%- include('../layouts/flash-toast') %>
+
+        <script>
+            document.getElementById('createUserForm').addEventListener('submit', function (e) {
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+
+                if (!name) {
+                    e.preventDefault();
+                    showToast('Full Name is required', 'error');
+                    return;
+                }
+
+                if (!email) {
+                    e.preventDefault();
+                    showToast('Email Address is required', 'error');
+                    return;
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    e.preventDefault();
+                    showToast('Please enter a valid email address', 'error');
+                }
+            });
+        </script>
+
+</body>
+
+</html>

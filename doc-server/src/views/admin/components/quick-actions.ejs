@@ -1,0 +1,62 @@
+<style>
+  .card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+  }
+
+  .card h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 12px;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  .quick-action-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .quick-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+  }
+
+  .quick-action-btn span:first-child {
+    font-size: 28px;
+  }
+</style>
+
+<div class="card">
+  <h2>Quick Actions</h2>
+  <div class="quick-actions">
+    <% actions.forEach(function(action) { %>
+      <a href="<%= action.link %>" class="quick-action-btn">
+        <span><%= action.icon %></span>
+        <span><%= action.label %></span>
+      </a>
+    <% }) %>
+  </div>
+</div>

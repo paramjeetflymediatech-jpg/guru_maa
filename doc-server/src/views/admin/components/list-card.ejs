@@ -1,0 +1,104 @@
+<style>
+  .card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+  }
+
+  .card h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 12px;
+  }
+
+  .recent-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .recent-list li {
+    padding: 15px;
+    border-bottom: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+  }
+
+  .recent-list li:hover {
+    background: #f8f9fa;
+  }
+
+  .recent-list li:last-child {
+    border-bottom: none;
+  }
+
+  .recent-item-info strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #2c3e50;
+  }
+
+  .recent-item-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 12px;
+  }
+
+  .action-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .action-btn:hover {
+    background: #764ba2;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+  }
+</style>
+
+<div class="card">
+  <h2><%= title %></h2>
+  <% if (items && items.length > 0) { %>
+    <ul class="recent-list">
+      <% items.slice(0, 5).forEach(function(item) { %>
+        <li>
+          <div class="recent-item-info">
+            <strong><%= item.name %></strong>
+            <p><%= item.meta %></p>
+          </div>
+          <% if (item.action) { %>
+            <a href="<%= item.action.link %>" class="action-btn"><%= item.action.label %></a>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-state-icon"><%= emptyIcon %></div>
+      <p><%= emptyMessage %></p>
+    </div>
+  <% } %>
+</div>

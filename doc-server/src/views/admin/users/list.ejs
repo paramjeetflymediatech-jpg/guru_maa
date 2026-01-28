@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Guru Maa Admin</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background: #667eea;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f7f9ff;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-admin {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-user {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tbody tr {
+                margin-bottom: 12px;
+                border-radius: 10px;
+                padding: 10px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                border: 1px solid #eee;
+            }
+
+            td {
+                padding: 8px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #555;
+                font-size: 12px;
+                margin-right: 10px;
+            }
+
+            .action-group {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+        <%- include('../layouts/sidebar', { currentPage: 'users' }) %>
+
+            <div class="main-content">
+                <div class="page-header">
+                    <div>
+                        <h1>👥 User Management</h1>
+                        <p>Manage admin access and users</p>
+                    </div>
+                    <a href="/admin/users/create" class="btn-primary">
+                        ➕ Add User
+                    </a>
+                </div>
+
+                <!-- User Table -->
+                <div class="card">
+                    <% if (users && users.length> 0) { %>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% users.forEach(user=> { %>
+                                    <tr>
+                                        <td data-label="Name">
+                                            <%= user.name %>
+                                        </td>
+                                        <td data-label="Email">
+                                            <%= user.email %>
+                                        </td>
+                                        <td data-label="Role">
+                                            <span class="badge badge-<%= user.role %>">
+                                                <%= user.role %>
+                                            </span>
+                                        </td>
+                                        <td data-label="Status">
+                                            <span class="badge badge-<%= user.status %>">
+                                                <%= user.status %>
+                                            </span>
+                                        </td>
+                                        <td data-label="Actions">
+                                            <div class="action-group">
+                                                <a href="/admin/users/edit/<%= user.id %>" class="btn-edit">
+                                                    ✏️ Edit
+                                                </a>
+                                                <form method="post" action="/admin/users/delete"
+                                                    style="display:inline;">
+                                                    <input type="hidden" name="id" value="<%= user.id %>">
+                                                    <button type="submit" class="btn-delete"
+                                                        onclick="return confirm('Delete this user?')">
+                                                        🗑️ Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <% } else { %>
+                            <div style="text-align:center; padding: 40px; color:#777;">
+                                <div style="font-size:40px; margin-bottom:10px;">👥</div>
+                                No users found.
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+    </div>
+
+    <!-- Flash & Toast Partial -->
+    <%- include('../layouts/flash-toast') %>
+
+</body>
+
+</html>

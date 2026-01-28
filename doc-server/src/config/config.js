@@ -7,4 +7,6 @@ module.exports = {
   BASE_URL: process.env.BASE_URL || 'http://localhost:4000',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@yopmail.com',
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'admin123', // dev only
+   // MongoDB URI
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/guru-maa',
 };

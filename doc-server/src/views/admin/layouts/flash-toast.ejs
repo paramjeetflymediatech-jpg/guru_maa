@@ -1,0 +1,42 @@
+<!-- Flash Message Data Container -->
+<script id="flash-message-data" type="application/json">
+    <%- JSON.stringify(locals.flash || {}) %>
+</script>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+    // Toast helper function
+    function showToast(message, type = 'success') {
+        const colors = {
+            success: "linear-gradient(to right, #00b09b, #96c93d)",
+            error: "linear-gradient(to right, #ff5f6d, #ffc371)",
+            info: "linear-gradient(to right, #2193b0, #6dd5ed)"
+        };
+
+        Toastify({
+            text: message,
+            duration: 3000,
+            close: true,
+            gravity: "top",
+            position: "right",
+            backgroundColor: colors[type] || colors.success,
+            stopOnFocus: true,
+        }).showToast();
+    }
+
+    // Check for flash
+    try {
+        const flashElement = document.getElementById('flash-message-data');
+        if (flashElement) {
+            const rawFlash = flashElement.textContent;
+            if (rawFlash) {
+                const flashData = JSON.parse(rawFlash);
+                if (flashData && flashData.message) {
+                    showToast(flashData.message, flashData.type);
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error parsing flash message:", e);
+    }
+</script>
