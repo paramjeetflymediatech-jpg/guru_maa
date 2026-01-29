@@ -29,7 +29,6 @@ function EnterOtpScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-
       const response = await verifyOtp({
         otp,
         email,
@@ -38,7 +37,10 @@ function EnterOtpScreen({ navigation, route }) {
 
       if (forgotPassword) {
         //redirect to setpassword screen
-        return navigation.navigate({});
+        return navigation.navigate('SetPassword', {
+          email: email.trim(),
+          userId: userId,
+        });
       }
       // Save token for auto-login
       await AsyncStorage.setItem('token', response?.data.token);

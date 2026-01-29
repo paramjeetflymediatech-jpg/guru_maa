@@ -180,19 +180,15 @@ exports.forgotPassword = async (req, res) => {
 /* ================= RESET PASSWORD ================= */
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
-    if (!email || !otp || !newPassword) {
+    if (!email && !newPassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (user.otp !== otp)
-      return res.status(400).json({ message: "Invalid OTP" });
-
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = newPassword;
     user.otp = null; // clear OTP after reset
     await user.save();
 

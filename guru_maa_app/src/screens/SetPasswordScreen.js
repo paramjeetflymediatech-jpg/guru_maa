@@ -23,7 +23,7 @@ function SetPasswordScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
-    if (!email || !otp || !password || !confirmPassword) {
+    if (!email  || !password || !confirmPassword) {
       Alert.alert('Validation Error', 'All fields are required');
       return;
     }
@@ -55,7 +55,9 @@ function SetPasswordScreen({ navigation, route }) {
     } catch (error) {
       Alert.alert(
         'Error',
-        error?.message || error?.response?.data?.message || 'Unable to reset password. Please try again.',
+        error?.message ||
+          error?.response?.data?.message ||
+          'Unable to reset password. Please try again.',
       );
     } finally {
       setLoading(false);
@@ -81,16 +83,8 @@ function SetPasswordScreen({ navigation, route }) {
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
+            editable={false}
             onChangeText={setEmail}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="OTP from email"
-            placeholderTextColor="#9ca3af"
-            keyboardType="number-pad"
-            value={otp}
-            onChangeText={setOtp}
           />
 
           <TextInput
