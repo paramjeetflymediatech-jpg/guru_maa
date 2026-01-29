@@ -1,4 +1,6 @@
 // src/controllers/adminController.js
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const path = require("path");
 const {
   getAllDocuments,
@@ -6,10 +8,8 @@ const {
   createDocument,
   deleteDocument,
   getDocumentCount,
-  DOCS_ROOT,
 } = require("../models/documentModel");
-const { User } = require("../models/userModel");
-const { ADMIN_EMAIL, ADMIN_PASSWORD } = require("../config/config");
+const User = require("../models/userModel");
 
 function showLogin(req, res) {
   try {
@@ -19,15 +19,36 @@ function showLogin(req, res) {
   }
 }
 
-function handleLogin(req, res) {
-  const { email, password } = req.body || {};
-  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-    req.session.isAdmin = true;
-    req.session.flash = { type: 'success', message: 'Welcome back, Admin!' };
+async function handleLogin(req, res) {
+  try {
+    const { email, password } = req.body;
+    const admin = await User.findOne({ email: email, role: "admin" });
+    if (!admin) {
+      req.session.flash = { type: "error", message: "Invalid credentials" };
+      return res.redirect("/admin/login");
+    }
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      req.session.flash = { type: "error", message: "Invalid credentials" };
+      return res.redirect("/admin/login");
+    }
+
+    const token = jwt.sign(
+      { id: admin._id, role: "ADMIN" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.cookie("admin_token", token, {
+      httpOnly: true,
+      secure: false, // true in production
+    });
+    console.log("done");
     return res.redirect("/admin/dashboard");
+  } catch (error) {
+    req.session.flash = { type: "error", message: error.message };
+    return res.redirect("/admin/login");
   }
-  req.session.flash = { type: 'error', message: 'Invalid credentials' };
-  return res.redirect("/admin/login");
 }
 
 function logout(req, res) {
@@ -44,39 +65,64 @@ async function showDashboard(req, res) {
     const recentDocs = docs.slice(0, 5);
 
     const data = {
-      title: 'Dashboard',
-      subtitle: 'Welcome back! Here\'s your admin overview.',
-      currentPage: 'dashboard',
+      title: "Dashboard",
+      subtitle: "Welcome back! Here's your admin overview.",
+      currentPage: "dashboard",
       stats: [
-        { icon: '📄', label: 'Documents', value: docCount, change: 'total files' },
-        { icon: '📚', label: 'API Docs', value: 5, change: 'endpoints' },
-        { icon: '💾', label: 'Storage', value: '125 MB', change: 'used' },
-        { icon: '👥', label: 'Users', value: userCount, change: 'active users' }
+        {
+          icon: "📄",
+          label: "Documents",
+          value: docCount,
+          change: "total files",
+        },
+        { icon: "📚", label: "API Docs", value: 5, change: "endpoints" },
+        { icon: "💾", label: "Storage", value: "125 MB", change: "used" },
+        {
+          icon: "👥",
+          label: "Users",
+          value: userCount,
+          change: "active users",
+        },
       ],
       actions: [
-        { icon: '➕', label: 'Upload Document', link: '/admin/docs' },
-        { icon: '📝', label: 'API Docs', link: '/admin/api-docs' },
-        { icon: '⚙️', label: 'Settings', link: '/admin/settings' }
+        { icon: "➕", label: "Upload Document", link: "/admin/docs" },
+        { icon: "📝", label: "API Docs", link: "/admin/api-docs" },
+        { icon: "⚙️", label: "Settings", link: "/admin/settings" },
       ],
       recentDocs: recentDocs,
       systemStatus: [
-        { label: 'Database', description: 'MongoDB', status: 'Connected', type: 'active' },
-        { label: 'API Server', description: 'Express.js', status: 'Running', type: 'active' },
-        { label: 'Storage', description: 'Local Disk', status: 'Available', type: 'active' }
-      ]
+        {
+          label: "Database",
+          description: "MongoDB",
+          status: "Connected",
+          type: "active",
+        },
+        {
+          label: "API Server",
+          description: "Express.js",
+          status: "Running",
+          type: "active",
+        },
+        {
+          label: "Storage",
+          description: "Local Disk",
+          status: "Available",
+          type: "active",
+        },
+      ],
     };
 
     res.render("admin/dashboard", data);
   } catch (err) {
     console.error("Dashboard Error:", err);
     res.render("admin/dashboard", {
-      title: 'Dashboard',
-      subtitle: 'Error loading dashboard',
-      currentPage: 'dashboard',
+      title: "Dashboard",
+      subtitle: "Error loading dashboard",
+      currentPage: "dashboard",
       stats: [],
       actions: [],
       recentDocs: [],
-      systemStatus: []
+      systemStatus: [],
     });
   }
 }
@@ -94,11 +140,11 @@ async function showDocs(req, res) {
     res.render("admin/docs", {
       docs,
       pagination,
-      currentPage: 'docs'
+      currentPage: "docs",
     });
   } catch (err) {
     console.error("Docs Error:", err);
-    req.session.flash = { type: 'error', message: 'Error loading documents.' };
+    req.session.flash = { type: "error", message: "Error loading documents." };
     res.redirect("/admin/dashboard");
   }
 }
@@ -106,7 +152,7 @@ async function showDocs(req, res) {
 // Multer sets req.file
 async function handleUpload(req, res) {
   if (!req.file) {
-    req.session.flash = { type: 'error', message: 'No file uploaded.' };
+    req.session.flash = { type: "error", message: "No file uploaded." };
     return res.redirect("/admin/docs");
   }
 
@@ -116,13 +162,19 @@ async function handleUpload(req, res) {
       filename: req.file.filename,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
-      size: req.file.size
+      size: req.file.size,
     });
 
-    req.session.flash = { type: 'success', message: 'Document uploaded successfully.' };
+    req.session.flash = {
+      type: "success",
+      message: "Document uploaded successfully.",
+    };
   } catch (err) {
     console.error(err);
-    req.session.flash = { type: 'error', message: 'Error saving document info.' };
+    req.session.flash = {
+      type: "error",
+      message: "Error saving document info.",
+    };
   }
   return res.redirect("/admin/docs");
 }
@@ -130,19 +182,25 @@ async function handleUpload(req, res) {
 async function handleDelete(req, res) {
   const docId = req.body.id; // Expecting MongoDB _id now
   if (!docId) {
-    req.session.flash = { type: 'error', message: 'Invalid document ID.' };
+    req.session.flash = { type: "error", message: "Invalid document ID." };
     return res.redirect("/admin/docs");
   }
 
   try {
     const success = await deleteDocument(docId);
     if (success) {
-      req.session.flash = { type: 'success', message: 'Document deleted successfully.' };
+      req.session.flash = {
+        type: "success",
+        message: "Document deleted successfully.",
+      };
     } else {
-      req.session.flash = { type: 'error', message: 'Failed to delete document.' };
+      req.session.flash = {
+        type: "error",
+        message: "Failed to delete document.",
+      };
     }
   } catch (err) {
-    req.session.flash = { type: 'error', message: 'Error deleting document.' };
+    req.session.flash = { type: "error", message: "Error deleting document." };
   }
   return res.redirect("/admin/docs");
 }

@@ -2,6 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const { PORT } = require("./src/config/config");
 const apiRoutes = require("./src/routes/apiRoutes");
@@ -16,6 +17,7 @@ connectDB();
 
 // Middlewares
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,13 +36,13 @@ app.use((req, res, next) => {
   res.locals.formData = req.session.formData; // Expose Sticky Form Data
   delete req.session.formData;
   res.locals.currentPage = null; // Default currentPage
-  res.locals.user = req.session.isAdmin ? { name: 'Admin' } : null; // Mock user
+  res.locals.user = req.session.isAdmin ? { name: "Admin" } : null; // Mock user
   next();
 });
 
 // Static docs
 app.use("/docs", express.static(DOCS_ROOT));
-
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 // Views
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));

@@ -136,7 +136,7 @@
                 <div class="card">
                     <% if (user) { %>
                         <form id="editUserForm" action="/admin/users/update" method="post" novalidate>
-                            <input type="hidden" name="id" value="<%= user.id %>">
+                            <input type="hidden" name="id" value="<%= user._id %>">
 
                             <div class="form-group">
                                 <label>Full Name</label>

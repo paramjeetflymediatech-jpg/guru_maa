@@ -15,8 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { verifyOtp, resendOtp } from '../api/auth.api';
 
 function EnterOtpScreen({ navigation, route }) {
-  const { email, userId } = route.params || {};
-
+  const { email, userId, forgotPassword } = route.params || {};
+  console.log(route.params, 'params');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -36,18 +36,23 @@ function EnterOtpScreen({ navigation, route }) {
         userId,
       });
 
+      if (forgotPassword) {
+        //redirect to setpassword screen
+        return navigation.navigate({});
+      }
       // Save token for auto-login
-      await AsyncStorage.setItem('token', response.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.user));
+      await AsyncStorage.setItem('token', response?.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response?.data.user));
 
       navigation.reset({
         index: 0,
         routes: [{ name: 'Library' }],
       });
     } catch (error) {
+      console.log(error, 'eeee');
       Alert.alert(
         'Verification Failed',
-        error?.message || 'Invalid OTP. Please try again.'
+        error?.message || 'Invalid OTP. Please try again.',
       );
     } finally {
       setLoading(false);
@@ -60,10 +65,7 @@ function EnterOtpScreen({ navigation, route }) {
       await resendOtp({ email, userId });
       Alert.alert('OTP Sent', 'A new OTP has been sent.');
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error?.message || 'Unable to resend OTP.'
-      );
+      Alert.alert('Error', error?.message || 'Unable to resend OTP.');
     } finally {
       setResending(false);
     }
@@ -104,19 +106,14 @@ function EnterOtpScreen({ navigation, route }) {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={onResendOtp}
-            disabled={resending}
-          >
+          <TouchableOpacity onPress={onResendOtp} disabled={resending}>
             <Text style={styles.resendText}>
               {resending ? 'Resending...' : 'Resend OTP'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.linkText}>
-              Change email / password
-            </Text>
+            <Text style={styles.linkText}>Change email / password</Text>
           </TouchableOpacity>
         </View>
       </View>

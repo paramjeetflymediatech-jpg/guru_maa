@@ -11,17 +11,19 @@ import {
   Platform,
 } from 'react-native';
 
-import Logo from './logoscreen';
-import { registerUser } from '../api/auth.api'; // <-- your API
+import { resetPassword } from '../api/auth.api';
 
-function RegisterScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+function SetPasswordScreen({ navigation, route }) {
+  const initialEmail = route?.params?.email || '';
+
+  const [email, setEmail] = useState(initialEmail);
+  const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const onRegister = async () => {
-    if (!name || !email || !password) {
+  const onSubmit = async () => {
+    if (!email || !otp || !password || !confirmPassword) {
       Alert.alert('Validation Error', 'All fields are required');
       return;
     }
@@ -31,24 +33,29 @@ function RegisterScreen({ navigation }) {
       return;
     }
 
+    if (password !== confirmPassword) {
+      Alert.alert('Mismatch', 'Passwords do not match');
+      return;
+    }
+
     try {
       setLoading(true);
-
-      const response = await registerUser({
-        name: name.trim(),
+      await resetPassword({
         email: email.trim(),
-        password,
+        otp,
+        newPassword: password,
       });
 
-      // Example: backend returns userId / otpToken
-      navigation.navigate('EnterOtp', {
-        email: email.trim(),
-        userId: response?.data.userId,
-      });
+      Alert.alert('Success', 'Password has been reset successfully.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
     } catch (error) {
       Alert.alert(
-        'Registration Failed',
-        error?.message || 'Unable to register. Please try again.'
+        'Error',
+        error?.message || error?.response?.data?.message || 'Unable to reset password. Please try again.',
       );
     } finally {
       setLoading(false);
@@ -61,29 +68,16 @@ function RegisterScreen({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Logo size={96} />
-          <Text style={styles.appName}>Gurumaa</Text>
-          <Text style={styles.appTagline}>
-            Create your secure Gurumaa account
-          </Text>
-        </View>
-
-        {/* FORM */}
         <View style={styles.formWrapper}>
-          <Text style={styles.title}>Register</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-          />
+          <Text style={styles.title}>Set New Password</Text>
+          <Text style={styles.subtitle}>
+            Enter the OTP you received on email and choose a new password.
+          </Text>
 
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor="#9ca3af"
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
@@ -92,31 +86,45 @@ function RegisterScreen({ navigation }) {
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="OTP from email"
+            placeholderTextColor="#9ca3af"
+            keyboardType="number-pad"
+            value={otp}
+            onChangeText={setOtp}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="New password"
+            placeholderTextColor="#9ca3af"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
 
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm new password"
+            placeholderTextColor="#9ca3af"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
           <TouchableOpacity
             style={[styles.primaryButton, loading && styles.disabledButton]}
-            onPress={onRegister}
+            onPress={onSubmit}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Register</Text>
+              <Text style={styles.primaryButtonText}>Update Password</Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            disabled={loading}
-          >
-            <Text style={styles.linkText}>
-              Already have an account? Login
-            </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.linkText}>Back to Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -129,52 +137,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-
-  header: {
-    paddingTop: 64,
-    paddingBottom: 24,
-    alignItems: 'center',
-  },
-
-  appName: {
-    marginTop: 12,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#275fb4',
-  },
-
-  appTagline: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
-
   formWrapper: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#111827',
+    marginBottom: 12,
+    textAlign: 'center',
   },
-
+  subtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 24,
+    color: '#6b7280',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    marginBottom: 14,
+    marginBottom: 16,
     fontSize: 15,
     color: '#111827',
   },
-
   primaryButton: {
     backgroundColor: '#007bff',
     paddingVertical: 14,
@@ -183,17 +172,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 12,
   },
-
   disabledButton: {
     opacity: 0.6,
   },
-
   primaryButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   linkText: {
     color: '#007bff',
     textAlign: 'center',
@@ -202,4 +188,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+export default SetPasswordScreen;

@@ -1,16 +1,27 @@
 // guru_maa_app/src/api/axios.instance.js
 import axios from 'axios';
 import { Platform } from 'react-native';
+import { API_BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const DEV_HOST =
   Platform.OS === 'android'
-    ? 'http://10.0.2.2:4000' // Android emulator -> host machine
-    : 'http://localhost:4000'; // iOS simulator / Metro same machine
+    ? 'http://10.0.2.2:3002' // Android emulator -> host machine
+    : 'http://localhost:3002'; // iOS simulator / Metro same machine
 
-console.log(DEV_HOST, 'sss');
+
+
+//localhost
+// const API = axios.create({
+//   baseURL: `${DEV_HOST}/api`,
+//   timeout: 15000,
+// });
+
+// production don't remove
+
 const API = axios.create({
-  baseURL: `${DEV_HOST}/api`,
+  baseURL: API_BASE_URL,
   timeout: 15000,
 });
 

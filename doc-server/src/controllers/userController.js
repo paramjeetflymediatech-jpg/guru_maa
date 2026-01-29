@@ -1,33 +1,12 @@
-const {
-  getPaginatedUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-  findUserByEmail,
-  updateUserByToken,
-  findUserByToken
-} = require('../models/userModel');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SECURE, BASE_URL } = require('../config/config');
- 
-// Email Transporter
-const transporter = nodemailer.createTransport({
-  host: EMAIL_HOST,
-  port: parseInt(EMAIL_PORT) || 587,
-  secure: EMAIL_SECURE, // true for 465, false for other ports
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  },
-});
-
+const User = require("../models/userModel");
+const crypto = require("crypto");
+const { EMAIL_USER, BASE_URL } = require("../config/config");
+const { sendPasswordSetupEmail } = require("../utils/mailer");
+const mongoose = require("mongoose");
 async function showUsers(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
     const { users, pagination } = await getPaginatedUsers(page, limit);
 
     res.render("admin/users/list", {
@@ -51,8 +30,9 @@ function showCreateUser(req, res) {
 
 async function showEditUser(req, res) {
   const { id } = req.params;
+  console.log(req.params, "param", id);
   try {
-    const user = await getUserById(id);
+    const user = await User.findById({ _id: id });
 
     if (!user) {
       req.session.flash = { type: "error", message: "User not found." };
@@ -109,11 +89,6 @@ async function apiCreateUser(req, res) {
     // If password is provided, save it
     if (password && password.trim() !== "") {
       userData.password = password;
-      // Maybe we still want to send a "Welcome" email, but the prompt emphasizes "link goes to user email then they can setup"
-      // If password SET by admin, we might not need the SETUP link, but maybe a login link?
-      // The prompt says "also add password input also when when admin and new user set passowrd link goes on user email"
-      // This is ambiguous. I'll assume if password IS provided, we set it.
-      // If NOT provided, we generate a token for setup.
       shouldSendEmail = false;
     }
 
@@ -147,7 +122,7 @@ async function apiCreateUser(req, res) {
       // Non-blocking email sending to avoid delay, or await if critical
       // Given it's an admin action, awaiting is safer to know if it failed
       try {
-        await transporter.sendMail(mailOptions);
+        await sendPasswordSetupEmail(mailOptions);
         req.session.flash = {
           type: "success",
           message: "User created and invitation sent.",
@@ -238,17 +213,6 @@ async function apiDeleteUser(req, res) {
   res.redirect("/admin/users");
 }
 
-module.exports = {
-  showUsers,
-  showCreateUser,
-  showEditUser,
-  apiCreateUser,
-  apiUpdateUser,
-  apiDeleteUser,
-  showSetupPassword,
-  handleSetupPassword,
-};
-
 async function showSetupPassword(req, res) {
   const { token } = req.params;
   const user = await findUserByToken(token);
@@ -294,3 +258,67 @@ async function handleSetupPassword(req, res) {
   };
   res.redirect("/admin/login");
 }
+
+async function getPaginatedUsers(page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const users = await User.find({ role: { $ne: "admin" } })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+  const total = await User.countDocuments();
+  return {
+    users,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalDocs: total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+async function getUserById(id) {
+  console.loh(id, "d");
+  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  return await User.findById({ _id: id });
+}
+
+async function createUser(userData) {
+  const user = new User(userData);
+  return await user.save();
+}
+
+async function updateUser(id, updateData) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  // { new: true } returns the updated document
+  return await User.findByIdAndUpdate(id, updateData, { new: true });
+}
+
+async function deleteUser(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return false;
+  const result = await User.findByIdAndDelete(id);
+  return !!result;
+}
+
+// Check email existence (helper for validation)
+async function findUserByEmail(email) {
+  return await User.findOne({ email });
+}
+
+async function findUserByToken(token) {
+  return await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+}
+
+module.exports = {
+  showUsers,
+  showCreateUser,
+  showEditUser,
+  apiCreateUser,
+  apiUpdateUser,
+  apiDeleteUser,
+  showSetupPassword,
+  handleSetupPassword,
+};

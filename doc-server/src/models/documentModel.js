@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const fs = require('fs');
-const path = require('path');
-const { BASE_URL } = require('../config/config');
+const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
+const { BASE_URL } = require("../config/config");
 
-const DOCS_ROOT = path.join(__dirname, '..', '..', 'public', 'docs');
+const DOCS_ROOT = path.join(__dirname, "..", "..", "public", "docs");
 
 // Ensure docs folder exists
 if (!fs.existsSync(DOCS_ROOT)) {
@@ -18,34 +18,30 @@ const documentSchema = new mongoose.Schema({
   mimeType: { type: String },
   size: { type: Number },
   folder: { type: String, default: null }, // For future folder categorization
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 
 // Virtual property for URL
-documentSchema.virtual('url').get(function () {
+documentSchema.virtual("url").get(function () {
   return `${BASE_URL}/docs/${this.filename}`;
 });
 
-// Virtual property for type (derived from mimetype or extension)
-documentSchema.virtual('type').get(function () {
-  if (this.mimeType === 'application/pdf') return 'pdf';
-  return 'doc'; // simplified
-});
 
-const Document = mongoose.model('Document', documentSchema);
+const Document = mongoose.model("Document", documentSchema);
 
 // Service functions (Wrappers)
 
 async function getAllDocuments() {
-  // Return plain objects with virtuals invoked if possible, or just the docs
-  // Mongoose documents need .toObject({ virtuals: true }) or similar to serialize virtuals
-  // But standard find returns Documents. When passed to EJS, we access properties.
+   
   return await Document.find().sort({ createdAt: -1 });
 }
 
 async function getPaginatedDocuments(page = 1, limit = 10) {
   const skip = (page - 1) * limit;
-  const docs = await Document.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+  const docs = await Document.find()
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
   const total = await Document.countDocuments();
   return {
     docs,
@@ -53,12 +49,13 @@ async function getPaginatedDocuments(page = 1, limit = 10) {
       page: Number(page),
       limit: Number(limit),
       totalDocs: total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   };
 }
 
 async function createDocument(fileData) {
+
   const doc = new Document(fileData);
   return await doc.save();
 }
@@ -95,5 +92,5 @@ module.exports = {
   getPaginatedDocuments,
   createDocument,
   deleteDocument,
-  getDocumentCount
+  getDocumentCount,
 };

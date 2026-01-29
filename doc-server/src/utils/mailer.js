@@ -29,4 +29,8 @@ const sendOtpEmail = async (to, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendOtpEmail };
+const sendPasswordSetupEmail = async (mailOptions) => {
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendOtpEmail, sendPasswordSetupEmail };

@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models/userModel");
+
+const User = require("../models/userModel");
 const { sendOtpEmail } = require("../utils/mailer");
 const { JWT_SECRET } = require("../config/config");
 
@@ -12,6 +13,7 @@ const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 /* ================= REGISTER ================= */
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -24,14 +26,13 @@ exports.register = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({ message: "Email already registered" });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
     const otp = generateOtp();
 
+    // Store plain password here and let the Mongoose pre-save hook hash it once
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password,
       otp,
       isVerified: false,
     });
@@ -86,19 +87,17 @@ exports.verifyOtp = async (req, res) => {
 
     if (user.otp !== otp)
       return res.status(400).json({ message: "Invalid OTP" });
-
     user.isVerified = true;
     user.otp = null;
     await user.save();
-
     const token = createToken(user._id);
-
     res.json({
       success: true,
       token,
       user: {
         id: user._id,
         email: user.email,
+        isVerified: user.isVerified,
       },
     });
   } catch (err) {
@@ -117,10 +116,11 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email: email });
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
-
+    console.log(password, "user", user);
     const valid = await bcrypt.compare(password, user.password);
+    console.log(valid, "ddd");
     if (!valid) return res.status(400).json({ message: "Invalid credentials" });
-    if (!!user.isVerified) {
+    if (!user.isVerified) {
       const otp = generateOtp();
       user.otp = otp;
       await user.save();
@@ -131,7 +131,6 @@ exports.login = async (req, res) => {
           id: user._id,
           email: user.email,
           isVerified: user.isVerified,
-          otp: user.otp,
         },
       });
     }
@@ -144,7 +143,6 @@ exports.login = async (req, res) => {
         id: user._id,
         email: user.email,
         isVerified: user.isVerified,
-        otp: user.otp,
       },
     });
   } catch (err) {
@@ -165,9 +163,9 @@ exports.forgotPassword = async (req, res) => {
     const otp = generateOtp();
     user.otp = otp;
     await user.save();
-
-    console.log("Forgot Password OTP (dev):", otp); // 🔥 send via email in production
-
+    console.log(user);
+    // send OTP email
+    await sendOtpEmail(email, otp);
     res.json({
       success: true,
       message: "OTP sent to your email",

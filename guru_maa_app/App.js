@@ -15,8 +15,11 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import EnterOtpScreen from './src/screens/EnterOtpScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import SetPasswordScreen from './src/screens/SetPasswordScreen';
 import LibraryScreen from './src/screens/LibraryScreen';
 import ReaderScreen from './src/screens/ReaderScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,9 +51,11 @@ function App() {
             options={{ headerShown: false }}
           />
 
-          {/* 🔑 Authentication */}
+          {/* 🔐 Authentication */}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="SetPassword" component={SetPasswordScreen} />
           <Stack.Screen name="EnterOtp" component={EnterOtpScreen} />
 
           {/* 📚 Main App */}
@@ -63,6 +68,11 @@ function App() {
             name="Reader"
             component={ReaderScreen}
             options={{ title: 'Reader' }}
+          />
+          <Stack.Screen
+            name="Profile"
+            component={ProfileScreen}
+            options={{ title: 'Profile' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

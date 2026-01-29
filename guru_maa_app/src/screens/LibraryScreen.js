@@ -1,71 +1,101 @@
-import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// For now, some sample religious documents. Later you can load this from API or backend.
-// Each doc has a "type" so the reader can render different formats (text, pdf, audio, etc.).
-const SAMPLE_DOCS = [
-  {
-    id: 'gita-1',
-    title: 'Bhagavad Gita',
-    subtitle: '18 chapters of divine wisdom',
-    totalPages: 18,
-    type: 'text',
-  },
-  {
-    id: 'mantra-1',
-    title: 'Morning Mantras',
-    subtitle: 'Daily morning prayers and chants',
-    totalPages: 5,
-    type: 'text',
-  },
-  {
-    id: 'aarti-1',
-    title: 'Evening Aarti',
-    subtitle: 'Evening devotional songs and aarti',
-    totalPages: 7,
-    type: 'text',
-  },
-  {
-    id: 'sample-pdf-1',
-    title: 'Sample PDF (to be wired later)',
-    subtitle: 'Example of a non-text document type',
-    totalPages: 1,
-    type: 'pdf',
-    url: 'https://example.com/sample.pdf', // replace with real PDF URL or local file path
-  },
-];
+import { getAllDocs } from '../api/doc.api';
 
 function LibraryScreen({ navigation }) {
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Session expired', 'Please login again');
+        return navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      }
+
+      const response = await getAllDocs();
+      let data = response?.data; 
+      setDocs(data.docs);
+    } catch (error) {
+      console.log('Fetch docs error:', error);
+      Alert.alert(
+        'Error',
+        error?.response?.data?.message || 'Unable to load documents',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
         navigation.navigate('Reader', {
-          docId: item.id,
+          docId: item._id,
           title: item.title,
           totalPages: item.totalPages,
           type: item.type,
           url: item.url,
         })
-      }>
+      }
+    >
       <Text style={styles.cardTitle}>{item.title}</Text>
       <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
       <Text style={styles.cardMeta}>{item.totalPages} chapters/pages</Text>
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#007bff" />
+        <Text style={styles.loadingText}>Loading documents...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Your Spiritual Library</Text>
+      {/* TOP BAR */}
+      <View style={styles.topBar}>
+        <Text style={styles.heading}>Your Spiritual Library</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.profileLink}>Profile</Text>
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.subheading}>
         Choose a scripture or prayer collection to begin reading.
       </Text>
 
       <FlatList
-        data={SAMPLE_DOCS}
-        keyExtractor={item => item.id}
+        data={docs}
+        keyExtractor={item => item._id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No documents found</Text>
+        }
       />
     </View>
   );
@@ -75,18 +105,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 60,
     backgroundColor: '#FFF9F0',
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 4,
+  },
+  profileLink: {
+    fontSize: 14,
+    color: '#007bff',
+    fontWeight: '500',
   },
   subheading: {
     fontSize: 14,
     color: '#666666',
-    marginBottom: 16,
+    marginVertical: 12,
   },
   listContent: {
     paddingBottom: 24,
@@ -96,25 +135,35 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
     color: '#555555',
-    marginBottom: 8,
+    marginTop: 4,
   },
   cardMeta: {
     fontSize: 12,
     color: '#999999',
+    marginTop: 8,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#555',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    color: '#888',
   },
 });
 

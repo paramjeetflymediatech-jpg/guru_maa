@@ -402,14 +402,14 @@
                                         </td>
                                         <td data-label="Actions">
                                             <div class="action-group">
-                                                <a href="/admin/users/edit/<%= user.id %>" class="btn-icon edit"
+                                                <a href="/admin/users/edit/<%= user._id %>" class="btn-icon edit"
                                                     title="Edit">
                                                     <span
                                                         style="margin-left:5px; @media(min-width:769px){display:none}">Edit</span>
                                                 </a>
                                                 <form method="post" action="/admin/users/delete"
                                                     style="display:inline; width: 100%;">
-                                                    <input type="hidden" name="id" value="<%= user.id %>">
+                                                    <input type="hidden" name="id" value="<%= user._id %>">
                                                     <button type="submit" class="btn-icon delete"
                                                         onclick="return confirm('Only Admins can delete users. Proceed?')"
                                                         title="Delete">

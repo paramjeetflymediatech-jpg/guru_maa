@@ -33,20 +33,24 @@ function LoginScreen({ navigation }) {
         password,
       });
       let user = response?.data?.user;
+      console.log(user,'ss')
 
-      if (!user.isVerified) {
+      if (!user?.isVerified) {
         Alert.alert(
           'Login Failed',
           response?.data?.message || 'OTP verification required',
         );
-        return navigation.reset({
-          index: 0,
-          routes: [{ name: 'EnterOtp' }],
+        return navigation.navigate('EnterOtp', {
+          email: email.trim(),
+          userId: user.id,
         });
       }
-      // 👉 Store token if API returns it
+      // 👉 Store token & user if API returns them
       if (response?.data?.token) {
         await AsyncStorage.setItem('token', response?.data?.token);
+      }
+      if (user) {
+        await AsyncStorage.setItem('user', JSON.stringify(user));
       }
       navigation.reset({
         index: 0,
@@ -118,8 +122,15 @@ function LoginScreen({ navigation }) {
             disabled={loading}
           >
             <Text style={styles.linkText}>
-              Don&apos;t have an account? Register
+              Don't have an account? Register
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            disabled={loading}
+          >
+            <Text style={styles.secondaryLinkText}>Forgot your password?</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -202,6 +213,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     fontSize: 14,
+  },
+  secondaryLinkText: {
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 6,
+    fontSize: 13,
   },
 });
 
