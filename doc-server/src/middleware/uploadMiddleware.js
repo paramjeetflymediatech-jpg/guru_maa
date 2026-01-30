@@ -1,44 +1,25 @@
-// middleware/uploadMiddleware.js
 const multer = require("multer");
 const path = require("path");
-const { DOCS_ROOT } = require("../models/documentModel");
+const { DOCS_ROOT } = require("../config/config");
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, DOCS_ROOT);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueName);
-  },
+  destination: (req, file, cb) => cb(null, DOCS_ROOT),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
 
+const allowedExt = [".pdf", ".doc", ".docx"];
+const allowedTypes = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
 const fileFilter = (req, file, cb) => {
-  const allowedExt = [".pdf", ".doc", ".docx", ".ppt"];
   const ext = path.extname(file.originalname).toLowerCase();
-
-  const allowedTypes = [
-    "application/pdf",
-
-    // Word
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-
-    // Excel
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-    // PowerPoint
-    "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  ];
-  if (allowedTypes.includes(file.mimetype) && allowedExt.includes(ext)) {
+  if (allowedExt.includes(ext) && allowedTypes.includes(file.mimetype)) {
     cb(null, true);
-  } else {
-    cb(new Error("Invalid file type"), false);
-  }
+  } else cb(new Error("Only DOC/DOCX or PDF allowed"), false);
 };
 
 const upload = multer({ storage, fileFilter });
-
 module.exports = upload;

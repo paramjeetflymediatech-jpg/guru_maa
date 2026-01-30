@@ -41,8 +41,7 @@ app.use((req, res, next) => {
 });
 
 // Static docs
-app.use("/docs", express.static(DOCS_ROOT));
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use("/docs", express.static(DOCS_ROOT)); 
 // Views
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));

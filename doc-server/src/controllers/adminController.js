@@ -2,7 +2,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const fs = require("fs");
+const { execFile } = require("child_process");
+const SOFFICE_PATH = process.env.LIBREOFFICE_PATH || "soffice";
 const {
+  DOCS_ROOT,
   getAllDocuments,
   getPaginatedDocuments,
   createDocument,
@@ -156,26 +160,80 @@ async function handleUpload(req, res) {
     return res.redirect("/admin/docs");
   }
 
-  try {
-    await createDocument({
-      title: req.file.originalname,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-      size: req.file.size,
-    });
+  const uploadedPath = req.file.path || path.join(DOCS_ROOT, req.file.filename);
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const baseName = path.parse(req.file.filename).name;
 
+  const isOfficeDoc =
+    ext === ".doc" ||
+    ext === ".docx" ||
+    (req.file.mimetype || "").includes("msword") ||
+    (req.file.mimetype || "").includes("officedocument.wordprocessingml");
+
+  let finalFilename = req.file.filename;
+  let finalMime = req.file.mimetype;
+  let finalSize = req.file.size;
+
+  try {
+    if (isOfficeDoc) {
+      const pdfFilename = `${baseName}.pdf`;
+      const outputDir = DOCS_ROOT;
+
+      await new Promise((resolve) => {
+        execFile(
+          SOFFICE_PATH,
+          [
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            outputDir,
+            uploadedPath,
+          ],
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error("LibreOffice conversion error:", error, stderr);
+            }
+            resolve();
+          },
+        );
+      });
+
+      const pdfPath = path.join(outputDir, pdfFilename);
+      if (fs.existsSync(pdfPath)) {
+        finalFilename = pdfFilename;
+        const stats = fs.statSync(pdfPath);
+        finalSize = stats.size;
+        finalMime = "application/pdf";
+      }
+    }
+
+    await createDocument({
+      title: path.parse(req.file.originalname).name,
+      filename: finalFilename,
+      originalName: req.file.originalname,
+      mimeType: finalMime,
+      size: finalSize,
+    }); 
+    if (ext !== ".pdf") {
+      if (fs.existsSync(uploadedPath)) {
+        fs.unlinkSync(uploadedPath);
+      }
+    }
     req.session.flash = {
       type: "success",
-      message: "Document uploaded successfully.",
+      message: isOfficeDoc
+        ? "Document uploaded and converted to PDF successfully."
+        : "Document uploaded successfully.",
     };
   } catch (err) {
     console.error(err);
     req.session.flash = {
       type: "error",
-      message: "Error saving document info.",
+      message: "Error uploading or converting document.",
     };
   }
+
   return res.redirect("/admin/docs");
 }
 

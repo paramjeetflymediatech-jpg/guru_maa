@@ -8,6 +8,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import Pdf from 'react-native-pdf';
 
 // Very simple in-memory content for demo purposes.
 // Later you can replace this with real content loaded from your backend/docs.
@@ -32,10 +33,11 @@ function ReaderScreen({ route }) {
     docId,
     title,
     totalPages = 1,
-    type = 'text',
+    type = 'pdf',
     url,
   } = route.params || {};
   const [currentPage, setCurrentPage] = useState(1);
+  console.log('Reader route params:', route.params);
 
   const handleOpenExternal = () => {
     if (!url) {
@@ -66,6 +68,8 @@ function ReaderScreen({ route }) {
     (CONTENT[docId] && CONTENT[docId][currentPage]) ||
     'Content for this page is not yet added.';
 
+  const isPdf = type === 'pdf';
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -75,7 +79,22 @@ function ReaderScreen({ route }) {
         </Text>
       )}
 
-      {type === 'text' ? (
+      {isPdf && url ? (
+        <View style={styles.pdfContainer}>
+          <Pdf
+            source={{ uri: url, cache: true }}
+            style={styles.pdf}
+            trustAllCerts={false}
+            onError={error => {
+              console.log('PDF load error', error, 'URL:', url);
+              Alert.alert(
+                'Error loading PDF',
+                error?.message || JSON.stringify(error, null, 2),
+              );
+            }}
+          />
+        </View>
+      ) : type === 'text' ? (
         <>
           <ScrollView
             style={styles.contentBox}
@@ -185,6 +204,18 @@ const styles = StyleSheet.create({
   pageButtonTextActive: {
     color: '#3B2A00',
     fontWeight: 'bold',
+  },
+  pdfContainer: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0D7C7',
+    backgroundColor: '#FFFEFA',
+    marginTop: 8,
+  },
+  pdf: {
+    flex: 1,
   },
   nonTextContainer: {
     flex: 1,

@@ -9,16 +9,20 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DOC_PATH } from '@env';
 
 import { getAllDocs } from '../api/doc.api';
 
 function LibraryScreen({ navigation }) {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = async ({ showSpinner = true } = {}) => {
     try {
-      setLoading(true);
+      if (showSpinner) {
+        setLoading(true);
+      }
 
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -30,7 +34,7 @@ function LibraryScreen({ navigation }) {
       }
 
       const response = await getAllDocs();
-      let data = response?.data; 
+      let data = response?.data;
       setDocs(data.docs);
     } catch (error) {
       console.log('Fetch docs error:', error);
@@ -39,13 +43,24 @@ function LibraryScreen({ navigation }) {
         error?.response?.data?.message || 'Unable to load documents',
       );
     } finally {
-      setLoading(false);
+      if (showSpinner) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchDocuments();
   }, []);
+
+  const onRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await fetchDocuments({ showSpinner: false });
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
@@ -55,7 +70,9 @@ function LibraryScreen({ navigation }) {
           title: item.title,
           totalPages: item.totalPages,
           type: item.type,
-          url: item.url,
+          // Build file URL using DOC_PATH so it works from emulator/device.
+          // Encode filename to handle spaces and special characters.
+          url: `${DOC_PATH}${encodeURIComponent(item.filename)}`,
         })
       }
     >
@@ -92,6 +109,8 @@ function LibraryScreen({ navigation }) {
         data={docs}
         keyExtractor={item => item._id}
         renderItem={renderItem}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No documents found</Text>
