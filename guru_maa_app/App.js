@@ -3,11 +3,14 @@
  * Uses src/screens folder for all screens
  */
 
+import 'react-native-gesture-handler'; // 🔴 MUST be first
+
 import React from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Screens
 import AuthLoadingScreen from './src/screens/AuthLoadingScreen';
@@ -27,56 +30,64 @@ function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+    <GestureHandlerRootView>
+      <SafeAreaProvider>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        />
 
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="AuthLoading"
-          screenOptions={{
-            headerBackTitleVisible: false,
-          }}
-        >
-          {/* 🔐 Auth check */}
-          <Stack.Screen
-            name="AuthLoading"
-            component={AuthLoadingScreen}
-            options={{ headerShown: false }}
-          />
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="AuthLoading"
+            screenOptions={{ headerBackTitleVisible: false }}
+          >
+            {/* 🔐 Auth check */}
+            <Stack.Screen
+              name="AuthLoading"
+              component={AuthLoadingScreen}
+              options={{ headerShown: false }}
+            />
 
-          {/* 🚀 Onboarding */}
-          <Stack.Screen
-            name="Onboarding"
-            component={OnboardingScreen}
-            options={{ headerShown: false }}
-          />
+            {/* 🚀 Onboarding */}
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              options={{ headerShown: false }}
+            />
 
-          {/* 🔐 Authentication */}
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="SetPassword" component={SetPasswordScreen} />
-          <Stack.Screen name="EnterOtp" component={EnterOtpScreen} />
+            {/* 🔐 Authentication */}
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+            />
+            <Stack.Screen
+              name="SetPassword"
+              component={SetPasswordScreen}
+            />
+            <Stack.Screen name="EnterOtp" component={EnterOtpScreen} />
 
-          {/* 📚 Main App */}
-          <Stack.Screen
-            name="Library"
-            component={LibraryScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Reader"
-            component={ReaderScreen}
-            options={{ title: 'Reader' }}
-          />
-          <Stack.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{ title: 'Profile' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+            {/* 📚 Main App */}
+            <Stack.Screen
+              name="Library"
+              component={LibraryScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Reader"
+              component={ReaderScreen}
+              options={{ title: 'Reader' }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ title: 'Profile' }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

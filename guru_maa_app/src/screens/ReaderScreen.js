@@ -1,4 +1,248 @@
-import React, { useState, useMemo } from 'react';
+// import React, { useState, useMemo, useRef, useEffect } from 'react';
+// import {
+//   View,
+//   Text,
+//   TouchableOpacity,
+//   ScrollView,
+//   StyleSheet,
+//   Alert,
+//   Linking,
+//   Dimensions,
+// } from 'react-native';
+// import Pdf from 'react-native-pdf';
+// import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+// /* ================= DEMO TEXT CONTENT ================= */
+
+// const CONTENT = {
+//   'gita-1': {
+//     1: `Chapter 1:
+// Throughout her life Maa attracted destitute and distressed people...`,
+//     2: 'Chapter 2: Sankhya Yoga\n\nContent for chapter 2...',
+//   },
+//   'mantra-1': {
+//     1: 'Om Bhur Bhuvaḥ Swaḥ\nTat-savitur vareṇyaṃ...',
+//   },
+// };
+
+// /* ================= READER SCREEN ================= */
+
+// function ReaderScreen({ route }) {
+//   const {
+//     docId,
+//     title,
+//     totalPages = 1,
+//     type = 'pdf',
+//     url,
+//   } = route.params || {};
+
+//   const pdfRef = useRef(null);
+
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [pdfPages, setPdfPages] = useState(0);
+//   const [pageRatio, setPageRatio] = useState(1);
+//   const [screen, setScreen] = useState(Dimensions.get('window'));
+
+//   const isPdf = type === 'pdf';
+//   const isPdfReady = pdfPages > 0;
+
+//   /* ================= ORIENTATION SAFE ================= */
+
+//   useEffect(() => {
+//     const sub = Dimensions.addEventListener('change', ({ window }) => {
+//       setScreen(window);
+//     });
+//     return () => sub?.remove();
+//   }, []);
+
+//   useEffect(() => {
+//     if (isPdfReady && currentPage > pdfPages) {
+//       setCurrentPage(1);
+//     }
+//   }, [screen.width, pdfPages]);
+
+//   /* ================= SAFE PDF HEIGHT ================= */
+
+//   const getSafePdfHeight = () => {
+//     if (!pageRatio || pageRatio <= 0) {
+//       return screen.height * 0.8;
+//     }
+
+//     const calculated = screen.width / pageRatio;
+
+//     return Math.min(
+//       Math.max(calculated, screen.height * 0.6),
+//       screen.height * 0.9,
+//     );
+//   };
+
+//   /* ================= GESTURE ================= */
+
+//   const panGesture = Gesture.Pan().onEnd(e => {
+//     if (!isPdfReady) return;
+
+//     if (e.translationX < -50 && currentPage < pdfPages) {
+//       setCurrentPage(p => p + 1);
+//     }
+
+//     if (e.translationX > 50 && currentPage > 1) {
+//       setCurrentPage(p => p - 1);
+//     }
+//   });
+
+//   /* ================= EXTERNAL OPEN ================= */
+
+//   const handleOpenExternal = () => {
+//     if (!url) {
+//       Alert.alert('No document URL');
+//       return;
+//     }
+//     Linking.openURL(url).catch(() => Alert.alert('Cannot open document'));
+//   };
+
+//   /* ================= TEXT MODE ================= */
+
+//   const pages = useMemo(
+//     () => Array.from({ length: totalPages }, (_, i) => i + 1),
+//     [totalPages],
+//   );
+
+//   const pageContent =
+//     CONTENT[docId]?.[currentPage] || 'Content for this page is not yet added.';
+
+//   /* ================= RENDER ================= */
+
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.title}>{title}</Text>
+
+//       {/* ================= PDF MODE ================= */}
+//       {isPdf && url ? (
+//         <>
+//           <GestureDetector gesture={panGesture}>
+//             <View style={styles.pdfContainer}>
+//               <Pdf
+//                 ref={pdfRef}
+//                 source={{ uri: url, cache: true }}
+//                 page={currentPage}
+//                 scale={1}
+//                 minScale={1}
+//                 maxScale={3}
+//                 horizontal={false}
+//                 enablePaging={false}
+//                 spacing={0}
+//                 trustAllCerts={false}
+//                 onLoadComplete={(pages, filePath, { width, height }) => {
+//                   if (width && height) {
+//                     setPageRatio(width / height);
+//                   }
+//                   setPdfPages(pages);
+//                 }}
+//                 onError={error => {
+//                   Alert.alert(
+//                     'PDF Error',
+//                     error?.message || 'Failed to load PDF',
+//                   );
+//                 }}
+//                 style={[styles.pdf, { height: getSafePdfHeight() }]}
+//               />
+//             </View>
+//           </GestureDetector>
+
+//           {/* ===== PDF CONTROLS ===== */}
+//           <View style={styles.pdfControls}>
+//             <TouchableOpacity
+//               disabled={!isPdfReady || currentPage <= 1}
+//               onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
+//             >
+//               <Text
+//                 style={[
+//                   styles.pdfBtn,
+//                   (!isPdfReady || currentPage <= 1) && styles.disabledBtn,
+//                 ]}
+//               >
+//                 ⬅ Prev
+//               </Text>
+//             </TouchableOpacity>
+
+//             <Text style={styles.pdfPageText}>
+//               {currentPage} / {pdfPages || '-'}
+//             </Text>
+
+//             <TouchableOpacity
+//               disabled={!isPdfReady || currentPage >= pdfPages}
+//               onPress={() => setCurrentPage(p => Math.min(pdfPages, p + 1))}
+//             >
+//               <Text
+//                 style={[
+//                   styles.pdfBtn,
+//                   (!isPdfReady || currentPage >= pdfPages) &&
+//                     styles.disabledBtn,
+//                 ]}
+//               >
+//                 Next ➡
+//               </Text>
+//             </TouchableOpacity>
+//           </View>
+//         </>
+//       ) : type === 'text' ? (
+//         /* ================= TEXT MODE ================= */
+//         <>
+//           <Text style={styles.pageLabel}>
+//             Page {currentPage} of {totalPages}
+//           </Text>
+
+//           <ScrollView
+//             style={styles.contentBox}
+//             contentContainerStyle={styles.contentInner}
+//           >
+//             <Text style={styles.contentText}>{pageContent}</Text>
+//           </ScrollView>
+
+//           <View style={styles.pageSelector}>
+//             {pages.map(page => (
+//               <TouchableOpacity
+//                 key={page}
+//                 style={[
+//                   styles.pageButton,
+//                   page === currentPage && styles.pageButtonActive,
+//                 ]}
+//                 onPress={() => setCurrentPage(page)}
+//               >
+//                 <Text
+//                   style={[
+//                     styles.pageButtonText,
+//                     page === currentPage && styles.pageButtonTextActive,
+//                   ]}
+//                 >
+//                   {page}
+//                 </Text>
+//               </TouchableOpacity>
+//             ))}
+//           </View>
+//         </>
+//       ) : (
+//         /* ================= OTHER FILES ================= */
+//         <View style={styles.nonTextContainer}>
+//           <Text style={styles.nonTextTitle}>Document type: {type}</Text>
+//           <Text style={styles.nonTextDescription}>
+//             This document will open in an external application.
+//           </Text>
+//           <TouchableOpacity
+//             style={styles.externalButton}
+//             onPress={handleOpenExternal}
+//           >
+//             <Text style={styles.externalButtonText}>Open document</Text>
+//           </TouchableOpacity>
+//         </View>
+//       )}
+//     </View>
+//   );
+// }
+
+
+
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,26 +251,24 @@ import {
   StyleSheet,
   Alert,
   Linking,
+  Dimensions,
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 
-// Very simple in-memory content for demo purposes.
-// Later you can replace this with real content loaded from your backend/docs.
+/* ================= DEMO TEXT CONTENT ================= */
+
 const CONTENT = {
   'gita-1': {
-    1: `Chapter 1: 
-    Through out her life Maa attracted destitute and distressed people whio came to her refuge and became her devotees. She freed them from all kind of pain and brought joy to their lives. She took on her body & soul many incurable diseases of her devotees. The foremost is that she drove the devotees to righteous conduct as well as meditative prayers. Many times she inspired devotees by visiting in their dreams and preached them with profound messages and kept watch on their conduct. She was embodiment of divine nectar. The simple & pure soul of her kind incarnate in the world in centuries. Due to her divine attributes lacs of devotees still remember her, pray her, sing hymns and celebrate her.
-
-Maa used to give flower petals as Prasad and this Prasad worked like divine blessings for the devotees.`,
+    1: `Chapter 1:
+Throughout her life Maa attracted destitute and distressed people...`,
     2: 'Chapter 2: Sankhya Yoga\n\nContent for chapter 2...',
   },
   'mantra-1': {
     1: 'Om Bhur Bhuvaḥ Swaḥ\nTat-savitur vareṇyaṃ...',
   },
-  'aarti-1': {
-    1: 'Om Jai Jagdish Hare... (Aarti verses here)',
-  },
 };
+
+/* ================= READER SCREEN ================= */
 
 function ReaderScreen({ route }) {
   const {
@@ -36,66 +278,76 @@ function ReaderScreen({ route }) {
     type = 'pdf',
     url,
   } = route.params || {};
-  const [currentPage, setCurrentPage] = useState(1);
-  console.log('Reader route params:', route.params);
+
+  const [currentPage, setCurrentPage] = useState(1); // used only for TEXT mode
+  const [screen, setScreen] = useState(Dimensions.get('window'));
+
+  const isPdf = type === 'pdf';
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setScreen(window);
+    });
+
+    return () => {
+      if (typeof subscription?.remove === 'function') {
+        subscription.remove();
+      } else if (typeof subscription === 'function') {
+        subscription();
+      }
+    };
+  }, []);
 
   const handleOpenExternal = () => {
     if (!url) {
-      Alert.alert(
-        'No document URL',
-        'This document does not have a URL configured yet.',
-      );
+      Alert.alert('No document URL');
       return;
     }
-
-    Linking.openURL(url).catch(() => {
-      Alert.alert(
-        'Cannot open document',
-        'There was a problem opening this file.',
-      );
-    });
+    Linking.openURL(url).catch(() => Alert.alert('Cannot open document'));
   };
 
-  const pages = useMemo(() => {
-    const arr = [];
-    for (let i = 1; i <= totalPages; i += 1) {
-      arr.push(i);
-    }
-    return arr;
-  }, [totalPages]);
+  const pages = useMemo(
+    () => Array.from({ length: totalPages }, (_, i) => i + 1),
+    [totalPages],
+  );
 
   const pageContent =
-    (CONTENT[docId] && CONTENT[docId][currentPage]) ||
-    'Content for this page is not yet added.';
-
-  const isPdf = type === 'pdf';
+    CONTENT[docId]?.[currentPage] || 'Content for this page is not yet added.';
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      {type === 'text' && (
-        <Text style={styles.pageLabel}>
-          Page {currentPage} of {totalPages}
-        </Text>
-      )}
 
+      {/* ========== PDF MODE ========== */}
       {isPdf && url ? (
         <View style={styles.pdfContainer}>
           <Pdf
             source={{ uri: url, cache: true }}
-            style={styles.pdf}
             trustAllCerts={false}
+            minScale={1}
+            maxScale={6}
+            horizontal={false}
+            enablePaging={false}
+            spacing={0}
+            style={[
+              styles.pdf,
+              { width: screen.width, height: screen.height*0.85  },
+            ]}
             onError={error => {
-              console.log('PDF load error', error, 'URL:', url);
               Alert.alert(
-                'Error loading PDF',
-                error?.message || JSON.stringify(error, null, 2),
+                'PDF Error',
+                error?.message || 'Failed to load PDF',
               );
             }}
           />
         </View>
       ) : type === 'text' ? (
+        /* ========== TEXT MODE ========== */
         <>
+          <Text style={styles.pageLabel}>
+            Page {currentPage} of {totalPages}
+          </Text>
+
           <ScrollView
             style={styles.contentBox}
             contentContainerStyle={styles.contentInner}
@@ -126,11 +378,11 @@ function ReaderScreen({ route }) {
           </View>
         </>
       ) : (
+        /* ========== OTHER FILE TYPES ========== */
         <View style={styles.nonTextContainer}>
           <Text style={styles.nonTextTitle}>Document type: {type}</Text>
           <Text style={styles.nonTextDescription}>
-            This document will be opened using your device's default app for
-            this file type.
+            This document will open in an external application.
           </Text>
           <TouchableOpacity
             style={styles.externalButton}
@@ -143,25 +395,26 @@ function ReaderScreen({ route }) {
     </View>
   );
 }
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    padding: 16,
     backgroundColor: '#FFFDF7',
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   pageLabel: {
     fontSize: 14,
-    color: '#666666',
-    marginBottom: 12,
+    color: '#666',
+    marginBottom: 10,
   },
+
+  /* ===== TEXT MODE ===== */
   contentBox: {
     flex: 1,
     borderRadius: 12,
@@ -189,9 +442,8 @@ const styles = StyleSheet.create({
     borderColor: '#D0C0A0',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    backgroundColor: '#FFFFFF',
+    margin: 4,
+    backgroundColor: '#FFF',
   },
   pageButtonActive: {
     backgroundColor: '#F3D9A4',
@@ -199,34 +451,58 @@ const styles = StyleSheet.create({
   },
   pageButtonText: {
     fontSize: 14,
-    color: '#555555',
+    color: '#555',
   },
   pageButtonTextActive: {
-    color: '#3B2A00',
     fontWeight: 'bold',
+    color: '#3B2A00',
   },
+
+  /* ===== PDF MODE ===== */
   pdfContainer: {
     flex: 1,
     borderRadius: 12,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E0D7C7',
-    backgroundColor: '#FFFEFA',
-    marginTop: 8,
+    backgroundColor: '#615f59',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   pdf: {
-    flex: 1,
+    width: '100%',
+    
   },
+  pdfControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 20,
+  },
+  pdfBtn: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#275fb4',
+  },
+  disabledBtn: {
+    opacity: 0.4,
+  },
+  pdfPageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#444',
+  },
+
+  /* ===== OTHER ===== */
   nonTextContainer: {
     flex: 1,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E0D7C7',
     backgroundColor: '#FFFEFA',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
   },
   nonTextTitle: {
     fontSize: 18,
@@ -235,21 +511,19 @@ const styles = StyleSheet.create({
   },
   nonTextDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: '#666',
     textAlign: 'center',
     marginBottom: 16,
   },
   externalButton: {
-    marginTop: 8,
+    backgroundColor: '#275fb4',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#275fb4',
   },
   externalButtonText: {
-    color: '#ffffff',
+    color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14,
   },
 });
 
