@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DOC_PATH } from '@env';
@@ -14,6 +15,10 @@ import { DOC_PATH } from '@env';
 import { getAllDocs } from '../api/doc.api';
 
 function LibraryScreen({ navigation }) {
+  const { width, height } = useWindowDimensions();
+  const isSmallWidth = width < 360;
+  const isShortHeight = height < 600;
+
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,12 +97,21 @@ function LibraryScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isShortHeight && styles.containerCompact]}>
       {/* TOP BAR */}
       <View style={styles.topBar}>
-        <Text style={styles.heading}>Your Spiritual Library</Text>
+        <Text
+          style={[styles.heading, isSmallWidth && styles.headingSmall]}
+          numberOfLines={isSmallWidth ? 2 : undefined}
+        >
+          Your Spiritual Library
+        </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.profileLink}>Profile</Text>
+          <Text
+            style={[styles.profileLink, isSmallWidth && styles.profileLinkSmall]}
+          >
+            Profile
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -127,19 +141,35 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     backgroundColor: '#FFF9F0',
   },
+  containerCompact: {
+    paddingTop: 32,
+    paddingHorizontal: 12,
+  },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 8,
   },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    marginRight: 8,
+  },
+  headingSmall: {
+    fontSize: 20,
   },
   profileLink: {
     fontSize: 14,
     color: '#007bff',
     fontWeight: '500',
+  },
+  profileLinkSmall: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
   },
   subheading: {
     fontSize: 14,
