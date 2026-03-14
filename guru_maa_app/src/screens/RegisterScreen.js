@@ -222,6 +222,8 @@ import {
 
 import Logo from './logoscreen';
 import { registerUser } from '../api/auth.api';
+import colors from '../constants/theme';
+
 
 const { height } = Dimensions.get('window');
 const isLandscape = height < 500;
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#275fb4',
+    color: colors.primary,
   },
 
   appTagline: {
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -421,7 +423,7 @@ const styles = StyleSheet.create({
   },
 
   linkText: {
-    color: '#007bff',
+    color: colors.primary,
     textAlign: 'center',
     marginTop: 10,
     fontSize: 14,

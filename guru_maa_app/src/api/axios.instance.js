@@ -7,8 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DEV_HOST =
   Platform.OS === 'android'
-    ? 'http://10.0.2.2:3002' // Android emulator -> host machine
-    : 'http://localhost:3002'; // iOS simulator / Metro same machine
+    ? 'http://10.0.2.2:3000' // Android emulator -> host machine
+    : 'http://localhost:3000'; // iOS simulator / Metro same machine
 
 
 

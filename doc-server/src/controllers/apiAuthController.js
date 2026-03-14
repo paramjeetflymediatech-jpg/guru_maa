@@ -96,6 +96,7 @@ exports.verifyOtp = async (req, res) => {
       token,
       user: {
         id: user._id,
+        name: user.name,
         email: user.email,
         isVerified: user.isVerified,
       },
@@ -116,9 +117,8 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email: email });
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
-    console.log(password, "user", user);
     const valid = await bcrypt.compare(password, user.password);
-    console.log(valid, "ddd");
+  
     if (!valid) return res.status(400).json({ message: "Invalid credentials" });
     if (!user.isVerified) {
       const otp = generateOtp();
@@ -129,6 +129,7 @@ exports.login = async (req, res) => {
         message: "OTP verification required",
         user: {
           id: user._id,
+          name: user.name,
           email: user.email,
           isVerified: user.isVerified,
         },
@@ -141,6 +142,7 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
+        name: user.name,
         email: user.email,
         isVerified: user.isVerified,
       },
@@ -162,8 +164,7 @@ exports.forgotPassword = async (req, res) => {
 
     const otp = generateOtp();
     user.otp = otp;
-    await user.save();
-    console.log(user);
+    await user.save(); 
     // send OTP email
     await sendOtpEmail(email, otp);
     res.json({

@@ -245,6 +245,7 @@ import {
 import Logo from './logoscreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginUser } from '../api/auth.api';
+import colors from '../constants/theme';
 
 const { height } = Dimensions.get('window');
 const isLandscape = height < 500;
@@ -289,7 +290,7 @@ function LoginScreen({ navigation }) {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Library' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (error) {
       Alert.alert(
@@ -384,67 +385,74 @@ function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#ffffff',
-    paddingBottom: 20,
+    backgroundColor: colors.background,
+    paddingBottom: 40,
   },
 
   header: {
-    paddingTop: 64,
-    paddingBottom: 24,
+    paddingTop: 80,
+    paddingBottom: 32,
     alignItems: 'center',
   },
 
   headerLandscape: {
-    paddingTop: 24,
-    paddingBottom: 12,
+    paddingTop: 32,
+    paddingBottom: 16,
   },
 
   appName: {
-    marginTop: 10,
-    fontSize: 24,
+    marginTop: 12,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#275fb4',
+    color: colors.primary,
   },
 
   appTagline: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#6b7280',
+    marginTop: 8,
+    fontSize: 15,
+    color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 32,
+    lineHeight: 22,
   },
 
   formWrapper: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#111827',
+    marginBottom: 20,
+    color: colors.textPrimary,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 14,
-    fontSize: 15,
-    color: '#111827',
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+    fontSize: 16,
+    color: colors.textPrimary,
+    backgroundColor: colors.backgroundSecondary,
   },
 
   primaryButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 14,
-    borderRadius: 10,
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 
   disabledButton: {
@@ -454,21 +462,22 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 17,
   },
 
   linkText: {
-    color: '#007bff',
+    color: colors.primary,
     textAlign: 'center',
-    marginTop: 10,
-    fontSize: 14,
+    marginTop: 12,
+    fontSize: 15,
+    fontWeight: '500',
   },
 
   secondaryLinkText: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 6,
-    fontSize: 13,
+    marginTop: 10,
+    fontSize: 14,
   },
 });
 

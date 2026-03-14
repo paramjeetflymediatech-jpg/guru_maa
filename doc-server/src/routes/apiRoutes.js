@@ -9,7 +9,7 @@ const {
   resetPassword,
 } = require('../controllers/apiAuthController');
 
-const { listDocs } = require('../controllers/apiDocController');
+const { listDocs, listCategories, trackReading } = require('../controllers/apiDocController');
 const apiAuthMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -22,7 +22,11 @@ router.post('/auth/resend-otp', resendOtp);
 router.post('/auth/forgot-password', forgotPassword);
 router.post('/auth/reset-password', resetPassword);
 
-/* ================= PROTECTED ================= */
+/* ================= DOCUMENTS ================= */
 router.get('/docs', apiAuthMiddleware, listDocs);
+router.get('/docs/:id/read', apiAuthMiddleware, trackReading);
+
+/* ================= CATEGORIES ================= */
+router.get('/categories', apiAuthMiddleware, listCategories);
 
 module.exports = router;

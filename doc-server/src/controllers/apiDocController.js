@@ -1,9 +1,14 @@
 // src/controllers/apiDocController.js
-const { getAllDocuments } = require("../models/documentModel");
+const { getAllDocuments, getAllCategories, getDocumentsByCategory, incrementReadingCount } = require("../models/documentModel");
 
 function deriveTypeFromDoc(doc) {
   const mime = (doc.mimeType || "").toLowerCase();
   const name = (doc.originalName || doc.filename || "").toLowerCase();
+  const contentType = doc.contentType;
+
+  // If it's text or HTML content type, return that
+  if (contentType === 'text') return 'text';
+  if (contentType === 'html') return 'html';
 
   if (mime.includes("pdf") || name.endsWith(".pdf")) return "pdf";
 
@@ -20,21 +25,48 @@ function deriveTypeFromDoc(doc) {
   return "text";
 }
 
+// Get category info for a document
+async function getCategoryInfo(categoryId) {
+  if (!categoryId) return null;
+  const { getCategoryById } = require("../models/documentModel");
+  return await getCategoryById(categoryId);
+}
+
 async function listDocs(req, res) {
   try {
-    const dbDocs = await getAllDocuments();
+    const { category } = req.query;
+    
+    let dbDocs;
+    if (category) {
+      dbDocs = await getDocumentsByCategory(category);
+    } else {
+      dbDocs = await getAllDocuments();
+    }
 
-    const docs = dbDocs.map(doc => {
+    const docs = await Promise.all(dbDocs.map(async doc => {
       const json = doc.toJSON();
       const type = deriveTypeFromDoc(json);
+      
+      // Ensure filename is included for PDF type
+      const filename = json.filename || '';
+      
+      // Get category info
+      let categoryInfo = null;
+      if (json.category) {
+        categoryInfo = await getCategoryInfo(json.category);
+      }
 
       return {
         ...json,
         type,
-        // Default to 1 page if not specified; can be extended later
+        filename, // Explicitly include filename
+        category: categoryInfo,
+        // Return content for text type
+        content: type === 'text' ? json.textContent : (type === 'html' ? json.htmlContent : null),
+        // Default to 1 page if not specified
         totalPages: json.totalPages || 1,
       };
-    });
+    }));
 
     return res.json({ docs });
   } catch (err) {
@@ -43,4 +75,27 @@ async function listDocs(req, res) {
   }
 }
 
-module.exports = { listDocs };
+// Get all categories
+async function listCategories(req, res) {
+  try {
+    const categories = await getAllCategories();
+    return res.json({ categories });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+}
+
+// Increment reading count when a document is opened
+async function trackReading(req, res) {
+  try {
+    const { id } = req.params;
+    await incrementReadingCount(id);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+}
+
+module.exports = { listDocs, listCategories, trackReading };

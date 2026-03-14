@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories - Guru Maa Admin</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --primary: #6366f1;
+      --primary-soft: #eef2ff;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-color);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.5;
+    }
+
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 40px;
+      gap: 20px;
+    }
+
+    .header-info h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text-dark);
+    }
+
+    .header-info p {
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+    }
+
+    .btn-secondary {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Category Grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .category-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid #f1f5f9;
+      transition: transform 0.2s ease;
+    }
+
+    .category-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .category-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .category-name {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .category-description {
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .category-actions .btn {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      padding: 10px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    .icon-option {
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 24px;
+      transition: 0.2s;
+    }
+
+    .icon-option:hover,
+    .icon-option.selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .empty-container {
+      text-align: center;
+      padding: 60px;
+      background: white;
+      border-radius: var(--radius);
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content { margin-left: 0; padding-top: 80px; }
+    }
+
+    @media (max-width: 480px) {
+      .category-grid { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('./layouts/sidebar', { currentPage: 'categories' }) %>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="header-info">
+          <h1>Content Categories</h1>
+          <p>Organize your content into categories for better navigation</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">+ Add Category</button>
+      </header>
+
+      <section class="category-grid">
+        <% if (categories && categories.length > 0) { %>
+          <% categories.forEach(function(category) { %>
+            <article class="category-card">
+              <div class="category-icon"><%= category.icon %></div>
+              <h3 class="category-name"><%= category.name %></h3>
+              <p class="category-description"><%= category.description || 'No description' %></p>
+              <div class="category-actions">
+                <button class="btn btn-secondary" data-id="<%= category._id %>" data-name="<%= category.name %>" data-description="<%= category.description || '' %>" data-icon="<%= category.icon %>" data-order="<%= category.order %>" onclick="editCategory(this)">Edit</button>
+                <form method="post" action="/admin/categories/delete" style="display:inline;">
+                  <input type="hidden" name="id" value="<%= category._id %>" />
+                  <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this category? Documents will be moved to uncategorized.')">Delete</button>
+                </form>
+              </div>
+            </article>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-container">
+            <div style="font-size: 50px; margin-bottom: 20px;">📂</div>
+            <h3>No categories yet</h3>
+            <p style="color: var(--text-light);">Create categories to organize your content.</p>
+          </div>
+        <% } %>
+      </section>
+    </main>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal" id="createModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add Category</h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form method="post" action="/admin/categories/create">
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" name="name" required placeholder="e.g., Bhagavad Gita, Mantras, Stories">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" placeholder="Brief description of this category"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Icon</label>
+          <div class="icon-grid">
+            <% const icons = ['📚', '📖', '🕉️', '🙏', '✨', '💫', '🌸', '🪔', '🔮', '📿', '🎭', '📜']; %>
+            <% icons.forEach(function(icon) { %>
+              <div class="icon-option" onclick="selectIcon(this)"><%= icon %></div>
+            <% }) %>
+          </div>
+          <input type="hidden" name="icon" id="selectedIcon" value="📚">
+        </div>
+        <div class="form-group">
+          <label>Display Order</label>
+          <input type="number" name="order" value="0" min="0">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Category</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Category</h2>
+        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+      </div>
+      <form method="post" action="/admin/categories/update">
+        <input type="hidden" name="id" id="editCategoryId">
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" name="name" id="editName" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" id="editDescription"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Icon</label>
+          <div class="icon-grid" id="editIconGrid">
+            <% const editIcons = ['📚', '📖', '🕉️', '🙏', '✨', '💫', '🌸', '🪔', '🔮', '📿', '🎭', '📜']; %>
+            <% editIcons.forEach(function(icon) { %>
+              <div class="icon-option" onclick="selectEditIcon(this)"><%= icon %></div>
+            <% }) %>
+          </div>
+          <input type="hidden" name="icon" id="editSelectedIcon" value="📚">
+        </div>
+        <div class="form-group">
+          <label>Display Order</label>
+          <input type="number" name="order" id="editOrder" value="0" min="0">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Update Category</button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('./layouts/flash-toast') %>
+
+  <script>
+    function openModal() {
+      document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('createModal').classList.remove('active');
+    }
+
+    function selectIcon(el) {
+      document.querySelectorAll('#createModal .icon-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('selectedIcon').value = el.textContent;
+    }
+
+    function editCategory(btn) {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const description = btn.getAttribute('data-description');
+      const icon = btn.getAttribute('data-icon');
+      const order = btn.getAttribute('data-order');
+      
+      document.getElementById('editCategoryId').value = id;
+      document.getElementById('editName').value = name;
+      document.getElementById('editDescription').value = description;
+      document.getElementById('editOrder').value = order;
+      
+      // Select the correct icon
+      document.querySelectorAll('#editModal .icon-option').forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.textContent === icon) {
+          opt.classList.add('selected');
+        }
+      });
+      document.getElementById('editSelectedIcon').value = icon;
+      
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+    }
+
+    function selectEditIcon(el) {
+      document.querySelectorAll('#editModal .icon-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('editSelectedIcon').value = el.textContent;
+    }
+  </script>
+</body>
+</html>

@@ -9,6 +9,15 @@ const {
   showDocs,
   handleUpload,
   handleDelete,
+  showCategories,
+  handleCategoryCreate,
+  handleCategoryUpdate,
+  handleCategoryDelete,
+  showCreateText,
+  handleTextCreate,
+  showEditDoc,
+  handleDocUpdate,
+  handleSearch,
 } = require("../controllers/adminController");
 
 const {
@@ -36,6 +45,21 @@ router.get("/dashboard", requireAdmin, showDashboard);
 router.get("/docs", requireAdmin, showDocs);
 router.post("/docs/upload", requireAdmin, upload.single("file"), handleUpload);
 router.post("/docs/delete", requireAdmin, handleDelete);
+router.post("/docs/search", requireAdmin, handleSearch);
+
+// Text content creation
+router.get("/docs/create/text", requireAdmin, showCreateText);
+router.post("/docs/create/text", requireAdmin, handleTextCreate);
+
+// Edit document
+router.get("/docs/edit/:id", requireAdmin, showEditDoc);
+router.post("/docs/edit/:id", requireAdmin, handleDocUpdate);
+
+// Categories management (protected)
+router.get("/categories", requireAdmin, showCategories);
+router.post("/categories/create", requireAdmin, handleCategoryCreate);
+router.post("/categories/update", requireAdmin, handleCategoryUpdate);
+router.post("/categories/delete", requireAdmin, handleCategoryDelete);
 
 // User Management Routes (protected)
 router.get("/users", requireAdmin, showUsers);

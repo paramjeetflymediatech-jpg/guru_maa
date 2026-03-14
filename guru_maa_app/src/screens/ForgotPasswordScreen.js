@@ -168,6 +168,8 @@ import {
 } from 'react-native';
 
 import { forgotPassword } from '../api/auth.api';
+import colors from '../constants/theme';
+
 
 function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
   },
 
   linkText: {
-    color: '#007bff',
+    color: colors.primary,
     textAlign: 'center',
     marginTop: 10,
     fontSize: 14,

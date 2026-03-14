@@ -29,6 +29,7 @@ app.use(
   }),
 );
 
+
 // Flash middleware
 app.use((req, res, next) => {
   res.locals.flash = req.session.flash;
@@ -40,8 +41,55 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static docs
-app.use("/docs", express.static(DOCS_ROOT)); 
+// Static docs - with proper MIME types
+const mimeTypes = {
+  '.pdf': 'application/pdf',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+};
+
+app.use("/docs", express.static(DOCS_ROOT, {
+  setHeaders: (res, filePath) => {
+    const ext = path.extname(filePath).toLowerCase();
+    if (mimeTypes[ext]) {
+      res.setHeader('Content-Type', mimeTypes[ext]);
+    }
+  }
+}));
+
+// Dedicated PDF serving route with explicit Content-Type
+const fs = require('fs');
+app.get('/pdf/:filename', (req, res) => {
+  const filename = req.params.filename;
+  
+  // Prevent directory traversal attacks
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\') || filename.includes('\0')) {
+    console.error('Path traversal attempt detected:', filename);
+    return res.status(400).send('Invalid filename');
+  }
+  
+  const filePath = path.join(DOCS_ROOT, filename);
+  
+  // Ensure the resolved path is within DOCS_ROOT
+  const resolvedPath = path.resolve(filePath);
+  const docsRootPath = path.resolve(DOCS_ROOT);
+  if (!resolvedPath.startsWith(docsRootPath)) {
+    console.error('Path traversal attempt detected - resolved path outside docs root:', resolvedPath);
+    return res.status(400).send('Invalid filename');
+  }
+  
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File not found');
+  }
+  
+  const ext = path.extname(filename).toLowerCase();
+  const contentType = mimeTypes[ext] || 'application/octet-stream';
+  
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+  
+  fs.createReadStream(filePath).pipe(res);
+}); 
 // Views
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));

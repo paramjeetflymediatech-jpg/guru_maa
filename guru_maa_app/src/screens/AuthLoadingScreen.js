@@ -9,7 +9,7 @@ function AuthLoadingScreen({ navigation }) {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: token ? 'Library' : 'Onboarding' }],
+        routes: [{ name: token ? 'Main' : 'Onboarding' }],
       });
     };
 

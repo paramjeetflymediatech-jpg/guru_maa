@@ -255,34 +255,30 @@ import {
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 
-/* ================= DEMO TEXT CONTENT ================= */
-
-const CONTENT = {
-  'gita-1': {
-    1: `Chapter 1:
-Throughout her life Maa attracted destitute and distressed people...`,
-    2: 'Chapter 2: Sankhya Yoga\n\nContent for chapter 2...',
-  },
-  'mantra-1': {
-    1: 'Om Bhur Bhuvaḥ Swaḥ\nTat-savitur vareṇyaṃ...',
-  },
-};
-
 /* ================= READER SCREEN ================= */
 
 function ReaderScreen({ route }) {
   const {
     docId,
     title,
+    subtitle,
     totalPages = 1,
     type = 'pdf',
     url,
+    content, // Text content passed from Library
   } = route.params || {};
-
-  const [currentPage, setCurrentPage] = useState(1); // used only for TEXT mode
+ 
+  const [currentPage, setCurrentPage] = useState(1);
   const [screen, setScreen] = useState(Dimensions.get('window'));
+  const [fontSize, setFontSize] = useState(18);
+  const [showSettings, setShowSettings] = useState(false);
 
   const isPdf = type === 'pdf';
+  const isText = type === 'text';
+  const isHtml = type === 'html';
+
+  // Use content passed from library if available, otherwise use route params
+  const textContent = content || '';
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -306,17 +302,57 @@ function ReaderScreen({ route }) {
     Linking.openURL(url).catch(() => Alert.alert('Cannot open document'));
   };
 
+  const increaseFontSize = () => {
+    if (fontSize < 32) setFontSize(fontSize + 2);
+  };
+
+  const decreaseFontSize = () => {
+    if (fontSize > 12) setFontSize(fontSize - 2);
+  };
+
   const pages = useMemo(
     () => Array.from({ length: totalPages }, (_, i) => i + 1),
     [totalPages],
   );
 
-  const pageContent =
-    CONTENT[docId]?.[currentPage] || 'Content for this page is not yet added.';
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      </View>
+
+      {/* Settings Toggle */}
+      <View style={styles.settingsBar}>
+        <TouchableOpacity
+          style={styles.settingsBtn}
+          onPress={() => setShowSettings(!showSettings)}
+        >
+          <Text style={styles.settingsBtnText}>
+            {showSettings ? '✕ Close' : '⚙️ Settings'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Font Size Controls */}
+      {showSettings && isText && (
+        <View style={styles.fontControls}>
+          <TouchableOpacity
+            style={styles.fontBtn}
+            onPress={decreaseFontSize}
+          >
+            <Text style={styles.fontBtnText}>A-</Text>
+          </TouchableOpacity>
+          <Text style={styles.fontSizeLabel}>{fontSize}px</Text>
+          <TouchableOpacity
+            style={styles.fontBtn}
+            onPress={increaseFontSize}
+          >
+            <Text style={styles.fontBtnText}>A+</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* ========== PDF MODE ========== */}
       {isPdf && url ? (
@@ -331,9 +367,17 @@ function ReaderScreen({ route }) {
             spacing={0}
             style={[
               styles.pdf,
-              { width: screen.width, height: screen.height*0.85  },
+              { width: screen.width, height: screen.height * 0.75 },
             ]}
+            onLoadStart={() => {
+              console.log('[PDF] Loading started for URL:', url);
+            }}
+            onLoadComplete={(numberOfPages, filePath, dimensions) => {
+              console.log('[PDF] Loaded:', numberOfPages, 'pages');
+            }}
             onError={error => {
+              console.error('[PDF] Error:', error);
+              console.log('[PDF] URL being used:', url);
               Alert.alert(
                 'PDF Error',
                 error?.message || 'Failed to load PDF',
@@ -341,7 +385,7 @@ function ReaderScreen({ route }) {
             }}
           />
         </View>
-      ) : type === 'text' ? (
+      ) : isText ? (
         /* ========== TEXT MODE ========== */
         <>
           <Text style={styles.pageLabel}>
@@ -352,7 +396,9 @@ function ReaderScreen({ route }) {
             style={styles.contentBox}
             contentContainerStyle={styles.contentInner}
           >
-            <Text style={styles.contentText}>{pageContent}</Text>
+            <Text style={[styles.contentText, { fontSize }]}>
+              {textContent || 'Content not available'}
+            </Text>
           </ScrollView>
 
           <View style={styles.pageSelector}>
@@ -377,6 +423,16 @@ function ReaderScreen({ route }) {
             ))}
           </View>
         </>
+      ) : isHtml ? (
+        /* ========== HTML MODE ========== */
+        <ScrollView
+          style={styles.contentBox}
+          contentContainerStyle={styles.contentInner}
+        >
+          <Text style={[styles.contentText, { fontSize }]}>
+            {content || 'Content not available'}
+          </Text>
+        </ScrollView>
       ) : (
         /* ========== OTHER FILE TYPES ========== */
         <View style={styles.nonTextContainer}>
@@ -403,10 +459,61 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FFFDF7',
   },
+  header: {
+    marginBottom: 8,
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  settingsBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+  settingsBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+  },
+  settingsBtnText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  fontControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  fontBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#8B5CF6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fontBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  fontSizeLabel: {
+    marginHorizontal: 20,
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
   pageLabel: {
     fontSize: 14,

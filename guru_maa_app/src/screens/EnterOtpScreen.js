@@ -219,6 +219,7 @@ import {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { verifyOtp, resendOtp } from '../api/auth.api';
+import colors from '../constants/theme';
 
 function EnterOtpScreen({ navigation, route }) {
   const { email, userId, forgotPassword } = route.params || {};
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -404,14 +405,14 @@ const styles = StyleSheet.create({
   },
 
   resendText: {
-    color: '#007bff',
+    color: colors.primary,
     textAlign: 'center',
     marginBottom: 10,
     fontSize: 14,
   },
 
   linkText: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     fontSize: 13,

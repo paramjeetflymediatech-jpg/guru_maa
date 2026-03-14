@@ -12,6 +12,14 @@ const {
   createDocument,
   deleteDocument,
   getDocumentCount,
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  updateDocument,
+  createTextDocument,
+  createHtmlDocument,
+  searchDocuments,
 } = require("../models/documentModel");
 const User = require("../models/userModel");
 
@@ -173,12 +181,14 @@ async function handleUpload(req, res) {
   let finalFilename = req.file.filename;
   let finalMime = req.file.mimetype;
   let finalSize = req.file.size;
+  let conversionSuccess = true;
 
   try {
     if (isOfficeDoc) {
       const pdfFilename = `${baseName}.pdf`;
       const outputDir = DOCS_ROOT;
 
+      // Try to convert DOC/DOCX to PDF using LibreOffice
       await new Promise((resolve) => {
         execFile(
           SOFFICE_PATH,
@@ -193,6 +203,7 @@ async function handleUpload(req, res) {
           (error, stdout, stderr) => {
             if (error) {
               console.error("LibreOffice conversion error:", error, stderr);
+              conversionSuccess = false;
             }
             resolve();
           },
@@ -200,12 +211,38 @@ async function handleUpload(req, res) {
       });
 
       const pdfPath = path.join(outputDir, pdfFilename);
-      if (fs.existsSync(pdfPath)) {
+      
+      // Check if PDF was actually created
+      if (conversionSuccess && fs.existsSync(pdfPath)) {
         finalFilename = pdfFilename;
         const stats = fs.statSync(pdfPath);
         finalSize = stats.size;
         finalMime = "application/pdf";
+        
+        // Delete the original DOC/DOCX file after successful conversion
+        if (fs.existsSync(uploadedPath)) {
+          try {
+            fs.unlinkSync(uploadedPath);
+          } catch (err) {
+            console.error("Failed to delete original file:", err);
+          }
+        }
+      } else {
+        // Conversion failed - keep original file and return error
+        console.error("PDF conversion failed - LibreOffice may not be installed or conversion failed");
+        req.session.flash = {
+          type: "error",
+          message: "PDF conversion failed. Please install LibreOffice or upload a PDF file directly.",
+        };
+        return res.redirect("/admin/docs");
       }
+    } else if (ext !== ".pdf") {
+      // Not a PDF and not an Office document - reject it
+      req.session.flash = {
+        type: "error",
+        message: "Only PDF, DOC, and DOCX files are allowed. Please upload a valid PDF file.",
+      };
+      return res.redirect("/admin/docs");
     }
 
     await createDocument({
@@ -215,11 +252,7 @@ async function handleUpload(req, res) {
       mimeType: finalMime,
       size: finalSize,
     }); 
-    if (ext !== ".pdf") {
-      if (fs.existsSync(uploadedPath)) {
-        fs.unlinkSync(uploadedPath);
-      }
-    }
+
     req.session.flash = {
       type: "success",
       message: isOfficeDoc
@@ -263,6 +296,259 @@ async function handleDelete(req, res) {
   return res.redirect("/admin/docs");
 }
 
+// Show categories management page
+async function showCategories(req, res) {
+  try {
+    const categories = await getAllCategories();
+    res.render("admin/categories", {
+      categories,
+      currentPage: "categories",
+    });
+  } catch (err) {
+    console.error("Categories Error:", err);
+    req.session.flash = { type: "error", message: "Error loading categories." };
+    res.redirect("/admin/dashboard");
+  }
+}
+
+// Create new category
+async function handleCategoryCreate(req, res) {
+  try {
+    const { name, description, icon, order } = req.body;
+    
+    // Validate required fields
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      req.session.flash = { type: "error", message: "Category name must be at least 2 characters." };
+      return res.redirect("/admin/categories");
+    }
+    
+    // Sanitize inputs - limit length and trim
+    const sanitizedName = name.trim().substring(0, 100);
+    const sanitizedDescription = description ? description.trim().substring(0, 500) : '';
+    const sanitizedIcon = icon ? icon.trim().substring(0, 10) : "📚";
+    
+    await createCategory({
+      name: sanitizedName,
+      description: sanitizedDescription,
+      icon: sanitizedIcon,
+      order: parseInt(order) || 0,
+    });
+    
+    req.session.flash = {
+      type: "success",
+      message: "Category created successfully.",
+    };
+  } catch (err) {
+    console.error("Create category error:", err);
+    req.session.flash = { type: "error", message: "Error creating category." };
+  }
+  return res.redirect("/admin/categories");
+}
+
+// Update category
+async function handleCategoryUpdate(req, res) {
+  try {
+    const { id, name, description, icon, order } = req.body;
+    
+    // Validate required fields
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      req.session.flash = { type: "error", message: "Category name must be at least 2 characters." };
+      return res.redirect("/admin/categories");
+    }
+    
+    // Sanitize inputs - limit length and trim
+    const sanitizedName = name.trim().substring(0, 100);
+    const sanitizedDescription = description ? description.trim().substring(0, 500) : '';
+    const sanitizedIcon = icon ? icon.trim().substring(0, 10) : "📚";
+    
+    await updateCategory(id, {
+      name: sanitizedName,
+      description: sanitizedDescription,
+      icon: sanitizedIcon,
+      order: parseInt(order) || 0,
+    });
+    
+    req.session.flash = {
+      type: "success",
+      message: "Category updated successfully.",
+    };
+  } catch (err) {
+    console.error("Update category error:", err);
+    req.session.flash = { type: "error", message: "Error updating category." };
+  }
+  return res.redirect("/admin/categories");
+}
+
+// Delete category
+async function handleCategoryDelete(req, res) {
+  try {
+    const { id } = req.body;
+    await deleteCategory(id);
+    req.session.flash = {
+      type: "success",
+      message: "Category deleted successfully.",
+    };
+  } catch (err) {
+    console.error("Delete category error:", err);
+    req.session.flash = { type: "error", message: "Error deleting category." };
+  }
+  return res.redirect("/admin/categories");
+}
+
+// Show create text content form
+async function showCreateText(req, res) {
+  try {
+    const categories = await getAllCategories();
+    res.render("admin/text-create", {
+      categories,
+      currentPage: "docs",
+    });
+  } catch (err) {
+    console.error("Error loading create text page:", err);
+    req.session.flash = { type: "error", message: "Error loading page." };
+    res.redirect("/admin/docs");
+  }
+}
+
+// Handle text content creation
+async function handleTextCreate(req, res) {
+  try {
+    const { title, subtitle, description, textContent, category, author, totalPages, isPublished, isFeatured } = req.body;
+    
+    // Validate required fields
+    if (!title || typeof title !== 'string' || title.trim().length < 2) {
+      req.session.flash = { type: "error", message: "Title is required and must be at least 2 characters." };
+      return res.redirect("/admin/docs/create/text");
+    }
+    
+    // Validate text content for text documents
+    if (!textContent || typeof textContent !== 'string' || textContent.trim().length < 10) {
+      req.session.flash = { type: "error", message: "Text content is required and must be at least 10 characters." };
+      return res.redirect("/admin/docs/create/text");
+    }
+    
+    // Sanitize and limit inputs
+    const sanitizedTitle = title.trim().substring(0, 200);
+    const sanitizedSubtitle = subtitle ? subtitle.trim().substring(0, 200) : '';
+    const sanitizedDescription = description ? description.trim().substring(0, 1000) : '';
+    const sanitizedTextContent = textContent.trim().substring(0, 50000); // Limit to 50k chars
+    const sanitizedAuthor = author ? author.trim().substring(0, 100) : '';
+    
+    await createTextDocument({
+      title: sanitizedTitle,
+      subtitle: sanitizedSubtitle,
+      description: sanitizedDescription,
+      textContent: sanitizedTextContent,
+      category: category || null,
+      author: sanitizedAuthor,
+      totalPages: parseInt(totalPages) || 1,
+      isPublished: isPublished === 'on',
+      isFeatured: isFeatured === 'on',
+    });
+    
+    req.session.flash = {
+      type: "success",
+      message: "Text content created successfully.",
+    };
+  } catch (err) {
+    console.error("Create text error:", err);
+    req.session.flash = { type: "error", message: "Error creating text content." };
+  }
+  return res.redirect("/admin/docs");
+}
+
+// Show edit document page
+async function showEditDoc(req, res) {
+  try {
+    const { id } = req.params;
+    const { getDocumentById } = require("../models/documentModel");
+    const doc = await getDocumentById(id);
+    const categories = await getAllCategories();
+    
+    if (!doc) {
+      req.session.flash = { type: "error", message: "Document not found." };
+      return res.redirect("/admin/docs");
+    }
+    
+    res.render("admin/doc-edit", {
+      doc,
+      categories,
+      currentPage: "docs",
+    });
+  } catch (err) {
+    console.error("Edit doc error:", err);
+    req.session.flash = { type: "error", message: "Error loading document." };
+    res.redirect("/admin/docs");
+  }
+}
+
+// Handle document update
+async function handleDocUpdate(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, subtitle, description, category, author, totalPages, isPublished, isFeatured } = req.body;
+    
+    await updateDocument(id, {
+      title,
+      subtitle,
+      description,
+      category: category || null,
+      author,
+      totalPages: parseInt(totalPages) || 1,
+      isPublished: isPublished === 'on',
+      isFeatured: isFeatured === 'on',
+    });
+    
+    req.session.flash = {
+      type: "success",
+      message: "Document updated successfully.",
+    };
+  } catch (err) {
+    console.error("Update doc error:", err);
+    req.session.flash = { type: "error", message: "Error updating document." };
+  }
+  return res.redirect("/admin/docs");
+}
+
+// Search documents
+async function handleSearch(req, res) {
+  try {
+    const { query } = req.body;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    let docs = [];
+    let pagination = { page, limit, totalDocs: 0, totalPages: 0 };
+    
+    if (query && query.trim()) {
+      docs = await searchDocuments(query.trim());
+      // Apply pagination manually for search results
+      const skip = (page - 1) * limit;
+      pagination.totalDocs = docs.length;
+      pagination.totalPages = Math.ceil(docs.length / limit);
+      docs = docs.slice(skip, skip + limit);
+    } else {
+      const result = await getPaginatedDocuments(page, limit);
+      docs = result.docs;
+      pagination = result.pagination;
+    }
+    
+    const categories = await getAllCategories();
+    
+    res.render("admin/docs", {
+      docs,
+      pagination,
+      categories,
+      searchQuery: query || '',
+      currentPage: "docs",
+    });
+  } catch (err) {
+    console.error("Search error:", err);
+    req.session.flash = { type: "error", message: "Error searching documents." };
+    res.redirect("/admin/docs");
+  }
+}
+
 module.exports = {
   showLogin,
   handleLogin,
@@ -271,4 +557,14 @@ module.exports = {
   showDocs,
   handleUpload,
   handleDelete,
+  // New exports
+  showCategories,
+  handleCategoryCreate,
+  handleCategoryUpdate,
+  handleCategoryDelete,
+  showCreateText,
+  handleTextCreate,
+  showEditDoc,
+  handleDocUpdate,
+  handleSearch,
 };
