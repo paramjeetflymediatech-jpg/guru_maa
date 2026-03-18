@@ -321,12 +321,12 @@ function LoginScreen({ navigation }) {
       >
         {/* HEADER */}
         <View style={[styles.header, isLandscape && styles.headerLandscape]}>
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={styles.langSelector} 
             onPress={handleLanguageChange}
           >
             <Text style={styles.langText}>🌐 {i18n.language === 'en' ? 'English' : 'हिन्दी'}</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <Logo size={isLandscape ? 72 : 96} />
           <Text style={styles.appName}>Gurumaa</Text>
           {!isLandscape && (

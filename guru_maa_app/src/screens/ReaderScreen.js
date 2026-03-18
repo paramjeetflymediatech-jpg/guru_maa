@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Pdf from 'react-native-pdf';
+import { WebView } from 'react-native-webview';
 import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
@@ -68,13 +69,13 @@ function ReaderScreen({ route, navigation }) {
     type = 'pdf',
     url,
     content,
-  } = route.params || {};
-
+  } = route.params || {}; 
   const insets = useSafeAreaInsets();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPdfPages, setTotalPdfPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const pdfRef = useRef(null);
 
@@ -82,10 +83,13 @@ function ReaderScreen({ route, navigation }) {
   const swipeFlash = useRef(new Animated.Value(0)).current;
   const swipeFlashColor = useRef(new Animated.Value(0)).current; // 0=left, 1=right
 
-  const isPdf = type === 'pdf';
-  const isText = type === 'text';
-  const isHtml = type === 'html';
   const textContent = content || '';
+
+  // Auto-detect HTML in content — if content has HTML tags, render via WebView
+  const containsHtml = /<[a-z][\s\S]*>/i.test(textContent);
+  const isPdf = type === 'pdf';
+  const isHtml = type === 'html' || (type === 'text' && containsHtml);
+  const isText = type === 'text' && !containsHtml;
 
   const flashSwipeIndicator = useCallback((direction) => {
     swipeFlashColor.setValue(direction === 'right' ? 1 : 0);
@@ -145,58 +149,72 @@ function ReaderScreen({ route, navigation }) {
   const renderPdfViewer = () => {
     if (!url) return renderExternalViewer();
 
-    return (
-      <View style={styles.pdfWrapper}>
-        <SpiritualBorder style={styles.pdfFrameOuter}>
-          {/* Loading Overlay */}
-          {isLoading && (
-            <View style={styles.loadingOverlay}>
-              <Text style={styles.loaderOm}>ॐ</Text>
-              <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 8 }} />
-              <Text style={styles.loadingText}>Loading sacred text…</Text>
-            </View>
-          )}
-
-          {/* Error Overlay */}
-          {loadingError && (
-            <View style={styles.errorOverlay}>
-              <Text style={styles.errorText}>⚠ {loadingError}</Text>
-              <TouchableOpacity
-                style={styles.retryButton}
-                onPress={() => { setIsLoading(true); setLoadingError(null); }}
-              >
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View style={styles.pdfContainer}>
-            <Pdf
-              ref={pdfRef}
-              source={{ uri: url, cache: true }}
-              trustAllCerts={false}
-              minScale={1}
-              maxScale={3}
-              horizontal={true}
-              enablePaging={true}
-              spacing={0}
-              style={styles.pdf}
-              onLoadStart={() => setIsLoading(true)}
-              onLoadComplete={handlePdfLoadComplete}
-              onError={handlePdfError}
-              onPageChanged={handlePageChange}
-            />
+    const PdfContent = (
+      <>
+        {/* Loading Overlay */}
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <Text style={styles.loaderOm}>ॐ</Text>
+            <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 8 }} />
+            <Text style={styles.loadingText}>Loading sacred text…</Text>
           </View>
-        </SpiritualBorder>
+        )}
+
+        {/* Error Overlay */}
+        {loadingError && (
+          <View style={styles.errorOverlay}>
+            <Text style={styles.errorText}>⚠ {loadingError}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => { setIsLoading(true); setLoadingError(null); }}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.pdfContainer}>
+          <Pdf
+            ref={pdfRef}
+            source={{ uri: url, cache: true }}
+            trustAllCerts={false}
+            minScale={1.1}
+            maxScale={5}
+            scale={1.1}
+            fitPolicy={0} // 0 = Fit Width, 1 = Fit Height, 2 = Fit Both
+            horizontal={true}
+            enablePaging={true}
+            spacing={0}
+            style={styles.pdf}
+            onLoadStart={() => setIsLoading(true)}
+            onLoadComplete={handlePdfLoadComplete}
+            onError={handlePdfError}
+            onPageChanged={handlePageChange}
+          />
+        </View>
+      </>
+    );
+
+    return (
+      <View style={[styles.pdfWrapper, isFullScreen && styles.pdfWrapperFullScreen]}>
+        {isFullScreen ? (
+          <View style={styles.fullScreenPdfContainer}>
+            {PdfContent}
+          </View>
+        ) : (
+          <SpiritualBorder style={styles.pdfFrameOuter}>
+            {PdfContent}
+          </SpiritualBorder>
+        )}
 
         {/* Tap zones for edge navigation */}
         <TouchableOpacity
-          style={styles.tapZoneLeft}
+          style={[styles.tapZoneLeft, isFullScreen && styles.tapZoneFullScreen]}
           onPress={goToPreviousPage}
           activeOpacity={0.2}
         />
         <TouchableOpacity
-          style={styles.tapZoneRight}
+          style={[styles.tapZoneRight, isFullScreen && styles.tapZoneFullScreen]}
           onPress={goToNextPage}
           activeOpacity={0.2}
         />
@@ -206,6 +224,7 @@ function ReaderScreen({ route, navigation }) {
           pointerEvents="none"
           style={[
             styles.swipeFlashOverlay,
+            isFullScreen && { top: 0, left: 0, right: 0, bottom: 0 },
             {
               opacity: swipeFlash,
               backgroundColor: swipeFlashColor.interpolate({
@@ -216,8 +235,8 @@ function ReaderScreen({ route, navigation }) {
           ]}
         />
 
-        {/* Bottom controls */}
-        {renderPageControls(totalPdfPages)}
+        {/* Bottom controls — hidden in full-screen */}
+        {!isFullScreen && renderPageControls(totalPdfPages)}
       </View>
     );
   };
@@ -287,57 +306,170 @@ function ReaderScreen({ route, navigation }) {
 
   /* ── TEXT READER ── */
   const renderTextReader = () => (
-    <View style={styles.textWrapper}>
-      <SpiritualBorder style={{ flex: 1 }}>
+    <View style={[styles.textWrapper, isFullScreen && styles.textWrapperFullScreen]}>
+      {isFullScreen ? (
         <ScrollView contentContainerStyle={styles.contentScrollInner}>
-          <Text style={styles.contentText}>{textContent || 'Content not available'}</Text>
+          <Text style={[styles.contentText, { color: '#ffffffff' }]}>{textContent || 'Content not available'}</Text>
         </ScrollView>
-      </SpiritualBorder>
-      {totalPages > 1 && renderPageControls(totalPages)}
+      ) : (
+        <SpiritualBorder style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.contentScrollInner}>
+            <Text style={styles.contentText}>{textContent || 'Content not available'}</Text>
+          </ScrollView>
+        </SpiritualBorder>
+      )}
+      {!isFullScreen && totalPages > 1 && renderPageControls(totalPages)}
     </View>
   );
 
-  return (
-    <GestureHandlerRootView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={HEADER_BG} />
+  /* ── HTML READER (WebView) ── */
+  const renderHtmlReader = () => {
+    console.log('[ReaderScreen] Rendering HTML document, url:', url, '| content length:', textContent.length);
+    const htmlSource = url
+      ? { uri: url }
+      : { html: generateHtmlWrapper(textContent), baseUrl: '' };
 
-      {/* ── SPIRITUAL HEADER ── */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.xs }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← वापस</Text>
-        </TouchableOpacity>
-
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerOm}>ॐ</Text>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          {subtitle ? (
-            <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
-          ) : null}
-        </View>
-
-        {/* Decorative right side */}
-        <View style={styles.headerRight}>
-          <Text style={styles.headerFlower}>❀</Text>
-        </View>
-      </View>
-
-      {/* Gold border under header */}
-      <View style={styles.headerGoldBorder} />
-
-      {/* ── MAIN CONTENT ── */}
-      <View style={styles.mainContent}>
-        {isPdf && url && renderPdfViewer()}
-        {isText && renderTextReader()}
-        {isHtml && (
-          <SpiritualBorder style={{ flex: 1, margin: spacing.md }}>
-            <View style={styles.externalInner}>
-              <Text style={styles.externalTitle}>HTML content</Text>
-              <Text style={styles.externalDescription}>Use text mode for best experience</Text>
-            </View>
+    return (
+      <View style={[styles.textWrapper, isFullScreen && styles.textWrapperFullScreen]}>
+        {isFullScreen ? (
+          <View style={{ flex: 1, backgroundColor: '#978d8dff' }}>
+            <WebView
+              source={htmlSource}
+              style={[styles.webview, { backgroundColor: '#978d8dff' }]}
+              originWhitelist={['*']}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              scalesPageToFit={false}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={styles.loadingOverlay}>
+                  <Text style={styles.loaderOm}>ॐ</Text>
+                  <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 8 }} />
+                  <Text style={styles.loadingText}>Loading content…</Text>
+                </View>
+              )}
+            />
+          </View>
+        ) : (
+          <SpiritualBorder style={{ flex: 1 }}>
+            <WebView
+              source={htmlSource}
+              style={styles.webview}
+              originWhitelist={['*']}
+              javaScriptEnabled={true}
+              scalesPageToFit={false}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={styles.loadingOverlay}>
+                  <Text style={styles.loaderOm}>ॐ</Text>
+                  <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 8 }} />
+                  <Text style={styles.loadingText}>Loading content…</Text>
+                </View>
+              )}
+            />
           </SpiritualBorder>
         )}
+      </View>
+    );
+  };
+
+  /* Helper to wrap raw HTML content in a styled page */
+  const generateHtmlWrapper = (rawHtml) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+      <style>
+        body {
+          font-family: -apple-system, sans-serif;
+          padding: 20px;
+          margin: 0;
+          color: ${isFullScreen ? '#FFFFFF' : MAROON};
+          background-color: ${isFullScreen ? '#978d8dff' : CREAM};
+          line-height: 1.6;
+          font-size: 18px;
+        }
+        img { max-width: 100%; height: auto; border-radius: 8px; }
+        a { color: ${SAFFRON_DARK}; }
+        h1, h2, h3 { color: ${isFullScreen ? '#FFFFFF' : MAROON}; }
+        blockquote {
+          border-left: 4px solid ${GOLD};
+          padding-left: 12px;
+          margin-left: 0;
+          color: ${isFullScreen ? '#CCCCCC' : '#5A3A1A'};
+          font-style: italic;
+        }
+      </style>
+    </head>
+    <body>${rawHtml || '<p>Content not available</p>'}</body>
+    </html>
+  `;
+
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={isFullScreen ? '#978d8dff' : HEADER_BG}
+        hidden={isFullScreen}
+      />
+
+      {/* ── SPIRITUAL HEADER — hidden in full-screen ── */}
+      {!isFullScreen && (
+        <>
+          <View style={[styles.header, { paddingTop: insets.top || StatusBar.currentHeight || 0 }]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+
+            <View style={styles.headerCenter}>
+              <Text style={styles.title} numberOfLines={1}>{title}</Text>
+              {subtitle ? (
+                <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+              ) : null}
+            </View>
+
+            {/* Full-screen toggle */}
+            <TouchableOpacity
+              style={styles.fullScreenButton}
+              onPress={() => setIsFullScreen(true)}
+            >
+              <Text style={styles.fullScreenIcon}>⛶</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Gold border under header */}
+          <View style={styles.headerGoldBorder} />
+        </>
+      )}
+
+      {/* ── MAIN CONTENT ── */}
+      <View style={[styles.mainContent, isFullScreen && styles.mainContentFullScreen]}>
+        {isPdf && url && renderPdfViewer()}
+        {isText && renderTextReader()}
+        {isHtml && renderHtmlReader()}
         {!isPdf && !isText && !isHtml && renderExternalViewer()}
       </View>
+
+      {/* ── FLOATING EXIT FULL-SCREEN BUTTON ── */}
+      {isFullScreen && (
+        <TouchableOpacity
+          style={[styles.floatingExitButton, { top: insets.top + 12 }]}
+          onPress={() => setIsFullScreen(false)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.floatingExitIcon}>✕</Text>
+          <Text style={styles.floatingExitText}>Exit</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* ── FLOATING PAGE INDICATOR (full-screen only) ── */}
+      {isFullScreen && isPdf && totalPdfPages > 0 && (
+        <View style={[styles.floatingPagePill, { bottom: insets.bottom + 16 }]}>
+          <Text style={styles.floatingPageText}>
+            {currentPage} / {totalPdfPages}
+          </Text>
+        </View>
+      )}
     </GestureHandlerRootView>
   );
 }
@@ -355,45 +487,37 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: 12,
+    paddingBottom: 6,
     backgroundColor: HEADER_BG,
   },
   headerGoldBorder: {
-    height: 3,
+    height: 2,
     backgroundColor: GOLD,
   },
   backButton: {
-    paddingVertical: spacing.xs,
-    paddingRight: spacing.sm,
-    minWidth: 70,
+    paddingVertical: 4,
+    paddingRight: 8,
+    minWidth: 40,
   },
   backButtonText: {
-    fontSize: typography.body,
+    fontSize: 18,
     color: GOLD_LIGHT,
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
   },
-  headerOm: {
-    fontSize: 22,
-    color: SAFFRON,
-    fontWeight: 'bold',
-    lineHeight: 26,
-  },
   title: {
-    fontSize: typography.h4,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: typography.small,
+    fontSize: 11,
     color: GOLD_LIGHT,
-    marginTop: 2,
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -405,35 +529,46 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: SAFFRON,
   },
+  fullScreenButton: {
+    minWidth: 40,
+    alignItems: 'flex-end',
+    paddingVertical: 4,
+  },
+  fullScreenIcon: {
+    fontSize: 18,
+    color: GOLD_LIGHT,
+  },
 
   /* ── MAIN CONTENT ── */
   mainContent: {
     flex: 1,
     backgroundColor: CREAM,
   },
+  mainContentFullScreen: {
+    backgroundColor: '#978d8dff',
+  },
 
   /* ── SPIRITUAL BORDER FRAME ── */
   spiritualFrame: {
-    borderRadius: radius.lg,
-    // outer gold dot border
-    borderWidth: 2,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
     borderColor: GOLD,
     borderStyle: 'dotted',
-    padding: 4,
+    padding: 2,
     overflow: 'visible',
   },
   borderLayerOuter: {
     flex: 1,
-    borderRadius: radius.md,
-    borderWidth: 2,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     borderColor: SAFFRON,
-    padding: 3,
+    padding: 2,
     overflow: 'hidden',
   },
   borderLayerInner: {
     flex: 1,
     borderRadius: radius.sm,
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: GOLD_LIGHT,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
@@ -466,11 +601,20 @@ const styles = StyleSheet.create({
   /* ── PDF WRAPPER ── */
   pdfWrapper: {
     flex: 1,
-    padding: spacing.md,
-    paddingBottom: 4,
+    padding: 8,
+    paddingBottom: 2,
+  },
+  pdfWrapperFullScreen: {
+    padding: 0,
+    paddingBottom: 0,
   },
   pdfFrameOuter: {
     flex: 1,
+  },
+  fullScreenPdfContainer: {
+    flex: 1,
+    backgroundColor: '#978d8dff',
+    
   },
   pdfContainer: {
     flex: 1,
@@ -497,6 +641,12 @@ const styles = StyleSheet.create({
     width: 64,
     bottom: 140,
     zIndex: 5,
+  },
+  tapZoneFullScreen: {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: undefined,
   },
 
   /* Swipe flash overlay */
@@ -563,19 +713,19 @@ const styles = StyleSheet.create({
 
   /* ── PAGE CONTROLS ── */
   pageControlsContainer: {
-    paddingBottom: spacing.sm,
-    paddingTop: 6,
+    paddingBottom: 4,
+    paddingTop: 4,
   },
   progressBarTrack: {
-    height: 4,
+    height: 3,
     backgroundColor: GOLD_LIGHT,
     borderRadius: 2,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    marginHorizontal: 8,
+    marginBottom: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
-    height: 4,
+    height: 3,
     backgroundColor: SAFFRON,
     borderRadius: 2,
   },
@@ -585,30 +735,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: HEADER_BG,
     borderRadius: radius.round,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginHorizontal: spacing.md,
-    borderWidth: 1.5,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginHorizontal: 8,
+    borderWidth: 1,
     borderColor: GOLD,
-    shadowColor: SAFFRON_DARK,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    elevation: 2,
   },
   navButton: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    minWidth: 80,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    minWidth: 60,
   },
   navButtonDisabled: {
     opacity: 0.3,
   },
   navButtonText: {
-    fontSize: typography.body,
+    fontSize: 13,
     color: GOLD_LIGHT,
     fontWeight: '700',
-    letterSpacing: 0.3,
   },
   navButtonTextDisabled: {
     color: '#888',
@@ -618,37 +763,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: SAFFRON,
     borderRadius: radius.round,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: GOLD,
   },
   pageIndicatorOm: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#FFFFFF',
-    marginRight: 4,
+    marginRight: 3,
     fontWeight: 'bold',
   },
   pageNumberText: {
-    fontSize: typography.h4,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
   pageSeparator: {
-    fontSize: typography.body,
+    fontSize: 12,
     color: GOLD_LIGHT,
   },
   pageTotalText: {
-    fontSize: typography.body,
+    fontSize: 12,
     color: '#FFFFFF',
   },
   swipeHint: {
     textAlign: 'center',
-    fontSize: typography.small,
+    fontSize: 10,
     color: SAFFRON_DARK,
     fontStyle: 'italic',
-    marginTop: 6,
-    letterSpacing: 0.3,
+    marginTop: 2,
   },
 
   /* ── EXTERNAL VIEWER ── */
@@ -705,6 +849,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: 4,
   },
+  textWrapperFullScreen: {
+    padding: 0,
+    paddingBottom: 0,
+  },
   contentScrollInner: {
     padding: spacing.lg,
   },
@@ -713,6 +861,58 @@ const styles = StyleSheet.create({
     lineHeight: typography.body * 1.8,
     color: MAROON,
     textAlign: 'justify',
+  },
+
+  /* ── WEBVIEW ── */
+  webview: {
+    flex: 1,
+    backgroundColor: CREAM,
+    opacity: 0.99, // Fix for Android WebView visibility inside border-radius containers
+  },
+
+  /* ── FLOATING CONTROLS ── */
+  floatingExitButton: {
+    position: 'absolute',
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(61,0,0,0.85)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GOLD,
+    zIndex: 100,
+    elevation: 10,
+  },
+  floatingExitIcon: {
+    fontSize: 14,
+    color: GOLD_LIGHT,
+    fontWeight: 'bold',
+    marginRight: 6,
+  },
+  floatingExitText: {
+    fontSize: 13,
+    color: GOLD_LIGHT,
+    fontWeight: '700',
+  },
+  floatingPagePill: {
+    position: 'absolute',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(61,0,0,0.85)',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GOLD,
+    zIndex: 100,
+    elevation: 10,
+  },
+  floatingPageText: {
+    fontSize: 14,
+    color: GOLD_LIGHT,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
 

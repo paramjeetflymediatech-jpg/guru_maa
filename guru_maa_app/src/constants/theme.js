@@ -5,48 +5,48 @@
 
 // Primary Colors - High contrast for visibility
 export const colors = {
-  // Primary - Deep Purple (more saturated for better visibility)
-  primary: '#6200ee',
-  primaryDark: '#3700b3',
-  primaryLight: '#bb86fc',
+  // Primary - Maroon (HEADER_BG from Reader)
+  primary: '#3D0000',
+  primaryDark: '#2D0000',
+  primaryLight: '#6B0000',
 
-  // Secondary - Warm Saffron Accent (more vibrant)
-  secondary: '#ff6f00',
-  secondaryDark: '#e65100',
-  secondaryLight: '#ffb74d',
+  // Secondary - Saffron and Gold
+  secondary: '#FF9933',
+  secondaryDark: '#E67300',
+  secondaryLight: '#D4AF37',
 
-  // Backgrounds - Soft warm tones to reduce eye strain
-  background: '#ffffff',
-  backgroundSecondary: '#F9FAFB',
-  backgroundCard: '#ffffff',
-  backgroundWarm: '#FFF9F0', // Warm background for content
-  backgroundCream: '#FFFDF7', // Reader background
+  // Backgrounds - Spiritual Cream
+  background: '#FFF8EE',
+  backgroundSecondary: '#FFF3DC',
+  backgroundCard: '#FFFFFF',
+  backgroundWarm: '#FFF8EE',
+  backgroundCream: '#FFF8EE',
 
-  // Text Colors - High contrast for readability
-  textPrimary: '#1a1a1a',    // Near black for maximum contrast
-  textSecondary: '#4B5563',  // Darker gray for better readability
-  textTertiary: '#6B7280',  // Lighter but still readable
-  textOnPrimary: '#ffffff',
-  textLink: '#2563EB',       // More visible link color
+  // Text Colors
+  textPrimary: '#3D0000',
+  textSecondary: '#6B0000',
+  textTertiary: '#E67300',
+  textOnPrimary: '#FFFFFF',
+  textLink: '#E67300',
 
   // UI Elements
-  border: '#D1D5DB',         // Slightly darker borders
-  borderLight: '#E5E7EB',
+  border: '#D4AF37',
+  borderLight: '#F5E7A0',
 
-  // Status Colors - More vibrant for visibility
-  success: '#059669',        // Darker green
-  error: '#DC2626',          // Darker red
-  warning: '#D97706',        // Darker amber
-  info: '#2563EB',            // Darker blue
+  // Status Colors
+  success: '#059669',
+  error: '#DC2626',
+  warning: '#D4AF37',
+  info: '#4A0072',
 
   // Tab Bar
-  tabActive: '#6200ee',
-  tabInactive: '#6B7280',    // Darker inactive color
-  tabBackground: '#ffffff',
+  tabActive: '#FF9933',
+  tabInactive: '#6B0000',
+  tabBackground: '#FFF8EE',
 
   // Header
-  headerBackground: '#ffffff',
-  headerTint: '#6200ee',
+  headerBackground: '#3D0000',
+  headerTint: '#F5E7A0',
 };
 
 // Spacing - Larger for better touch targets and readability

@@ -215,12 +215,7 @@ function RootNavigator() {
       <RootStack.Screen
         name="Reader"
         component={ReaderScreen}
-        options={{ 
-          title: 'Reader',
-          headerShown: true,
-          headerStyle: { backgroundColor: colors.headerBackground },
-          headerTintColor: colors.headerTint,
-        }}
+        options={{ headerShown: false }}
       />
       <RootStack.Screen
         name="About"

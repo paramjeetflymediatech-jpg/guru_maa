@@ -41,6 +41,7 @@ function LibraryScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   // Animation for header glow
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -109,17 +110,20 @@ function LibraryScreen({ navigation }) {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.85}
-      onPress={() =>
+      onPress={() => {
+        const docType = item.type || 'text';
         navigation.navigate('Reader', {
           docId: item._id,
           title: item.title,
           subtitle: item.subtitle,
           totalPages: item.totalPages,
-          type: item.type,
-          content: item.content,
-          url: item.type === 'pdf' ? `${DOC_PATH}${encodeURIComponent(item.filename)}` : null,
-        })
-      }
+          type: docType,
+          content: item.content || '',
+          url: docType === 'pdf' && item.filename
+            ? `${DOC_PATH}${encodeURIComponent(item.filename)}`
+            : null,
+        });
+      }}
     >
       {/* Top gradient accent band */}
       <View style={styles.cardTopBand}>
@@ -178,10 +182,17 @@ function LibraryScreen({ navigation }) {
     );
   }
 
-  return (
-    <View style={styles.container}>
+  const renderHeader = () => (
+    <View>
       {/* ── SPIRITUAL HEADER ── */}
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.searchIconBtn} 
+          onPress={() => setIsSearchExpanded(!isSearchExpanded)}
+        >
+          <Text style={styles.searchIconText}>🔍</Text>
+        </TouchableOpacity>
+
         <Text style={styles.headerOm}>ॐ</Text>
         <Text style={[styles.heading, isSmallWidth && styles.headingSmall]}>
           {i18n.language === 'hi' ? t('library.hindiTitle') : t('library.title')}
@@ -198,16 +209,19 @@ function LibraryScreen({ navigation }) {
       </View>
 
       {/* ── SEARCH BAR ── */}
-      <View style={styles.searchContainer}>
-        <Text style={styles.searchPrefix}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('library.searchPlaceholder')}
-          placeholderTextColor="#B07040"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+      {isSearchExpanded && (
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchPrefix}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('library.searchPlaceholder')}
+            placeholderTextColor="#B07040"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus={true}
+          />
+        </View>
+      )}
 
       {/* ── CATEGORY FILTER ── */}
       <TouchableOpacity
@@ -251,13 +265,18 @@ function LibraryScreen({ navigation }) {
       <Text style={styles.resultCount}>
         ✦ {filteredDocs.length} {filteredDocs.length === 1 ? 'scripture' : 'scriptures'} found
       </Text>
+    </View>
+  );
 
+  return (
+    <View style={styles.container}>
       <FlatList
         data={filteredDocs}
         keyExtractor={item => item._id}
         renderItem={renderItem}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -288,6 +307,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
     backgroundColor: CREAM,
+    position: 'relative',
+  },
+  searchIconBtn: {
+    position: 'absolute',
+    top: 0,
+    right: spacing.md,
+    padding: spacing.sm,
+    zIndex: 10,
+    backgroundColor: '#FFFBF0',
+    borderRadius: radius.round,
+    borderWidth: 1.5,
+    borderColor: SAFFRON,
+    shadowColor: SAFFRON,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIconText: {
+    fontSize: 18,
   },
   headerOm: {
     fontSize: 42,

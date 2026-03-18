@@ -1,14 +1,27 @@
 // src/controllers/apiDocController.js
 const { getAllDocuments, getAllCategories, getDocumentsByCategory, incrementReadingCount } = require("../models/documentModel");
 
+// Check if a string contains HTML tags
+function isHtmlContent(str) {
+  if (!str || typeof str !== 'string') return false;
+  return /<[a-z][\s\S]*>/i.test(str);
+}
+
 function deriveTypeFromDoc(doc) {
   const mime = (doc.mimeType || "").toLowerCase();
   const name = (doc.originalName || doc.filename || "").toLowerCase();
   const contentType = doc.contentType;
 
-  // If it's text or HTML content type, return that
-  if (contentType === 'text') return 'text';
+  // If it's explicitly set as html content type, return html
   if (contentType === 'html') return 'html';
+
+  // If it's text content type, check if the actual content contains HTML
+  if (contentType === 'text') {
+    if (isHtmlContent(doc.textContent) || isHtmlContent(doc.htmlContent)) {
+      return 'html';
+    }
+    return 'text';
+  }
 
   if (mime.includes("pdf") || name.endsWith(".pdf")) return "pdf";
 
@@ -21,7 +34,11 @@ function deriveTypeFromDoc(doc) {
     return name.endsWith(".docx") ? "docx" : "doc";
   }
 
-  // Fallback: treat as generic text/other
+  // Fallback: check if any content field has HTML
+  if (isHtmlContent(doc.textContent) || isHtmlContent(doc.htmlContent)) {
+    return 'html';
+  }
+
   return "text";
 }
 
@@ -35,7 +52,7 @@ async function getCategoryInfo(categoryId) {
 async function listDocs(req, res) {
   try {
     const { category } = req.query;
-    
+
     let dbDocs;
     if (category) {
       dbDocs = await getDocumentsByCategory(category);
@@ -46,10 +63,10 @@ async function listDocs(req, res) {
     const docs = await Promise.all(dbDocs.map(async doc => {
       const json = doc.toJSON();
       const type = deriveTypeFromDoc(json);
-      
+
       // Ensure filename is included for PDF type
       const filename = json.filename || '';
-      
+      json.contentType = json.contentType ? type : ''
       // Get category info
       let categoryInfo = null;
       if (json.category) {
@@ -61,8 +78,10 @@ async function listDocs(req, res) {
         type,
         filename, // Explicitly include filename
         category: categoryInfo,
-        // Return content for text type
-        content: type === 'text' ? json.textContent : (type === 'html' ? json.htmlContent : null),
+        // Return content based on derived type
+        content: type === 'text'
+          ? (json.textContent || '')
+          : (type === 'html' ? (json.htmlContent || json.textContent || '') : null),
         // Default to 1 page if not specified
         totalPages: json.totalPages || 1,
       };

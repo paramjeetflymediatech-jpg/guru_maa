@@ -154,6 +154,7 @@ import {
   Alert,
   ScrollView,
   Image,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors, { spacing, typography, radius } from '../constants/theme';
@@ -163,6 +164,7 @@ function ProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLangModalVisible, setLangModalVisible] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -181,11 +183,12 @@ function ProfileScreen({ navigation }) {
     loadUser();
   }, []); 
   const handleLanguageChange = () => {
-    Alert.alert(t('profile.changeLanguage'), '', [
-      { text: 'English', onPress: () => i18n.changeLanguage('en') },
-      { text: 'हिन्दी', onPress: () => i18n.changeLanguage('hi') },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
+    setLangModalVisible(true);
+  };
+
+  const selectLanguage = (langCode) => {
+    i18n.changeLanguage(langCode);
+    setLangModalVisible(false);
   };
 
   const handleLogout = async () => {
@@ -239,7 +242,7 @@ function ProfileScreen({ navigation }) {
         </View>
 
         {/* Menu Sections */}
-        <View style={styles.menuSection}>
+        {/* <View style={styles.menuSection}>
           <View style={styles.menuCard}>
             <MenuItem
               icon="🌐"
@@ -247,7 +250,7 @@ function ProfileScreen({ navigation }) {
               onPress={handleLanguageChange}
             />
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>{t('profile.legal')}</Text>
@@ -283,6 +286,34 @@ function ProfileScreen({ navigation }) {
         {/* Footer */}
         <Text style={styles.versionText}>Version {version}</Text>
       </ScrollView>
+
+      {/* Custom Language Selector Modal */}
+      <Modal
+        visible={isLangModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setLangModalVisible(false)}>
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>{t('profile.changeLanguage')}</Text>
+            
+            <TouchableOpacity style={styles.langButton} onPress={() => selectLanguage('en')} activeOpacity={0.7}>
+              <Text style={styles.langButtonIcon}>🇺🇸</Text>
+              <Text style={styles.langButtonText}>English</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.langButton} onPress={() => selectLanguage('hi')} activeOpacity={0.7}>
+              <Text style={styles.langButtonIcon}>🇮🇳</Text>
+              <Text style={styles.langButtonText}>हिन्दी</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setLangModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -482,6 +513,66 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontSize: typography.bodySmall,
     color: colors.textTertiary,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: typography.h3,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: spacing.xl,
+    textAlign: 'center',
+  },
+  langButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.borderLight,
+  },
+  langButtonIcon: {
+    fontSize: 28,
+    marginRight: spacing.md,
+  },
+  langButtonText: {
+    fontSize: typography.bodyLarge,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  cancelButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  cancelButtonText: {
+    fontSize: typography.body,
+    color: colors.textSecondary,
+    fontWeight: '600',
   },
 });
 
