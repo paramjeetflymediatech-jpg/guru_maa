@@ -221,27 +221,36 @@ import {
 } from 'react-native';
 
 import Logo from './logoscreen';
-import { registerUser } from '../api/auth.api';
-import colors from '../constants/theme';
+import colors, { spacing, typography, radius } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
 
 
 const { height } = Dimensions.get('window');
 const isLandscape = height < 500;
 
 function RegisterScreen({ navigation }) {
+  const { t, i18n } = useTranslation();
   const [name, setName] = useState('');
+
+  const handleLanguageChange = () => {
+    Alert.alert(t('profile.changeLanguage'), '', [
+      { text: 'English', onPress: () => i18n.changeLanguage('en') },
+      { text: 'हिन्दी', onPress: () => i18n.changeLanguage('hi') },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const onRegister = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Validation Error', 'All fields are required');
+      Alert.alert(t('register.validationError'), t('register.fieldsRequired'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters');
+      Alert.alert(t('register.weakPassword'), t('register.weakPassword'));
       return;
     }
 
@@ -260,9 +269,9 @@ function RegisterScreen({ navigation }) {
       });
     } catch (error) {
       Alert.alert(
-        'Registration Failed',
+        t('register.failed'),
         error?.response?.data?.message ||
-          'Unable to register. Please try again.'
+          t('common.error')
       );
     } finally {
       setLoading(false);
@@ -280,39 +289,45 @@ function RegisterScreen({ navigation }) {
       >
         {/* HEADER */}
         <View style={[styles.header, isLandscape && styles.headerLandscape]}>
+          <TouchableOpacity 
+            style={styles.langSelector} 
+            onPress={handleLanguageChange}
+          >
+            <Text style={styles.langText}>🌐 {i18n.language === 'en' ? 'English' : 'हिन्दी'}</Text>
+          </TouchableOpacity>
           <Logo size={isLandscape ? 72 : 96} />
           <Text style={styles.appName}>Gurumaa</Text>
 
           {!isLandscape && (
             <Text style={styles.appTagline}>
-              Create your secure Gurumaa account
+              {t('register.tagline')}
             </Text>
           )}
         </View>
 
         {/* FORM */}
         <View style={styles.formWrapper}>
-          <Text style={styles.title}>Register</Text>
+          <Text style={styles.title}>{t('register.title')}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Full Name"
+            placeholder={t('register.fullName')}
             value={name}
             onChangeText={setName}
           />
-
+ 
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={t('register.email')}
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
           />
-
+ 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('register.password')}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -326,7 +341,7 @@ function RegisterScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Register</Text>
+              <Text style={styles.primaryButtonText}>{t('register.submit')}</Text>
             )}
           </TouchableOpacity>
 
@@ -335,7 +350,7 @@ function RegisterScreen({ navigation }) {
             disabled={loading}
           >
             <Text style={styles.linkText}>
-              Already have an account? Login
+              {t('register.alreadyHaveAccount')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -349,67 +364,70 @@ function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#ffffff',
-    paddingBottom: 20,
+    backgroundColor: colors.background,
+    paddingBottom: spacing.lg,
   },
 
   header: {
     paddingTop: 64,
-    paddingBottom: 24,
+    paddingBottom: spacing.lg,
     alignItems: 'center',
   },
 
   headerLandscape: {
-    paddingTop: 24,
-    paddingBottom: 12,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
 
   appName: {
-    marginTop: 10,
-    fontSize: 24,
+    marginTop: spacing.sm,
+    fontSize: typography.h2,
     fontWeight: 'bold',
     color: colors.primary,
   },
 
   appTagline: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#6b7280',
+    marginTop: spacing.xs,
+    fontSize: typography.body,
+    color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.lg,
   },
 
   formWrapper: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.lg,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: typography.h2,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#111827',
+    marginBottom: spacing.md,
+    color: colors.textPrimary,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 14,
-    fontSize: 15,
-    color: '#111827',
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    fontSize: typography.input,
+    color: colors.textPrimary,
+    backgroundColor: colors.backgroundSecondary,
+    minHeight: 56, // Larger touch target
   },
 
   primaryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+    minHeight: 56, // Larger touch target
   },
 
   disabledButton: {
@@ -417,18 +435,36 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: '#ffffff',
+    color: colors.textOnPrimary,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: typography.button,
   },
 
   linkText: {
     color: colors.primary,
     textAlign: 'center',
-    marginTop: 10,
-    fontSize: 14,
+    marginTop: spacing.sm,
+    fontSize: typography.bodySmall,
+    fontWeight: '600',
+    padding: spacing.sm, // Larger touch target
+  },
+  langSelector: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 10,
+  },
+  langText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
 
 export default RegisterScreen;
-

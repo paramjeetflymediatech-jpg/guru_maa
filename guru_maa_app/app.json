@@ -1,4 +1,7 @@
 {
   "name": "gurumaa_app",
-  "displayName": "gurumaa_app"
+  "displayName": "gurumaa_app",
+  "expo": {
+    "orientation": "default"
+  }
 }

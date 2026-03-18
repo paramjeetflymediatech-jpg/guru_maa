@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "cancel": "रद्द करें",
+    "ok": "ठीक है",
+    "logout": "लॉगआउट",
+    "login": "लॉगिन",
+    "register": "पंजीकरण"
+  },
+  "register": {
+    "title": "पंजीकरण",
+    "fullName": "पूरा नाम",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "submit": "पंजीकरण करें",
+    "alreadyHaveAccount": "पहले से ही एक खाता है? लॉगिन करें",
+    "validationError": "सत्यापन त्रुटि",
+    "fieldsRequired": "सभी क्षेत्र अनिवार्य हैं",
+    "weakPassword": "पासवर्ड कम से कम 6 वर्णों का होना चाहिए",
+    "failed": "पंजीकरण विफल",
+    "tagline": "अपना सुरक्षित गुरुमाँ खाता बनाएं",
+    "dontHaveAccount": "खाता नहीं है? पंजीकरण करें",
+    "forgotPassword": "पासवर्ड भूल गए?"
+  },
+  "library": {
+    "title": "Sacred Library",
+    "hindiTitle": "दिव्य पुस्तकालय",
+    "searchPlaceholder": "खोजें पवित्र ग्रंथ, मंत्र...",
+    "browseByCategory": "श्रेणी के अनुसार ब्राउज़ करें",
+    "hideCategories": "श्रेणियाँ छिपाएँ",
+    "all": "सभी",
+    "found": "शास्त्र मिले",
+    "loadingTexts": "दिव्य ग्रंथों को लोड किया जा रहा है...",
+    "page": "पृष्ठ",
+    "pages": "पृष्ठ"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "verified": "सत्यापित खाता",
+    "notVerified": "सत्यापित नहीं",
+    "legal": "कानूनी",
+    "about": "ऐप के बारे में",
+    "privacy": "गोपनीयता नीति",
+    "terms": "नियम और शर्तें",
+    "changeLanguage": "भाषा बदलें",
+    "logoutConfirm": "क्या आप वाकई लॉगआउट करना चाहते हैं?"
+  }
+}

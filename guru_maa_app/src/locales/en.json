@@ -1,0 +1,50 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "register": {
+    "title": "Register",
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Register",
+    "alreadyHaveAccount": "Already have an account? Login",
+    "validationError": "Validation Error",
+    "fieldsRequired": "All fields are required",
+    "weakPassword": "Password must be at least 6 characters",
+    "failed": "Registration Failed",
+    "tagline": "Create your secure Gurumaa account",
+    "dontHaveAccount": "Don't have an account? Register",
+    "forgotPassword": "Forgot your password?"
+  },
+  "library": {
+    "title": "Sacred Library",
+    "hindiTitle": "दिव्य पुस्तकालय",
+    "searchPlaceholder": "Search sacred texts, mantras...",
+    "browseByCategory": "Browse by Category",
+    "hideCategories": "Hide Categories",
+    "all": "All",
+    "found": "scriptures found",
+    "loadingTexts": "Loading divine texts...",
+    "page": "page",
+    "pages": "pages"
+  },
+  "profile": {
+    "title": "Profile",
+    "verified": "Verified Account",
+    "notVerified": "Not Verified",
+    "legal": "Legal",
+    "about": "About App",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "changeLanguage": "Change Language",
+    "logoutConfirm": "Are you sure you want to logout?"
+  }
+}

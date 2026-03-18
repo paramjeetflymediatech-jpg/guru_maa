@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,27 @@ import {
   useWindowDimensions,
   TextInput,
   ScrollView,
+  Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DOC_PATH, API_BASE_URL } from '@env';
 import { getAllDocs, getAllCategories } from '../api/doc.api';
-import colors from '../constants/theme';
+import colors, { spacing, typography, radius } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
+
+// Spiritual color palette
+const SAFFRON = '#FF9933';
+const SAFFRON_DARK = '#E67300';
+const GOLD = '#D4AF37';
+const GOLD_LIGHT = '#F5E7A0';
+const MAROON = '#800000';
+const DEEP_PURPLE = '#4A0072';
+const CREAM = '#FFF8EE';
+const CARD_BG = '#FFFDF5';
 
 function LibraryScreen({ navigation }) {
-  const { width, height, scale } = useWindowDimensions();
+  const { t, i18n } = useTranslation();
+  const { width, height } = useWindowDimensions();
   const isSmallWidth = width < 360;
   const isShortHeight = height < 600;
 
@@ -29,34 +42,33 @@ function LibraryScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
 
+  // Animation for header glow
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 2000, useNativeDriver: false }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 2000, useNativeDriver: false }),
+      ])
+    ).start();
+  }, []);
+
   const fetchDocuments = async ({ showSpinner = true } = {}) => {
     try {
-      if (showSpinner) {
-        setLoading(true);
-      }
-
+      if (showSpinner) setLoading(true);
       const token = await AsyncStorage.getItem('token');
       if (!token) {
-        Alert.alert('Session expired', 'Please login again');
-        return navigation.reset({
-          index: 0,
-          routes: [{ name: 'Auth' }],
-        });
+        Alert.alert(t('common.error'), t('common.loading'));
+        return navigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
       }
-
       const response = await getAllDocs();
-      let data = response?.data;
-      setDocs(data.docs);
+      setDocs(response?.data?.docs || []);
     } catch (error) {
       console.log('Fetch docs error:', error);
-      Alert.alert(
-        'Error',
-        error?.response?.data?.message || 'Unable to load documents',
-      );
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('common.error'));
     } finally {
-      if (showSpinner) {
-        setLoading(false);
-      }
+      if (showSpinner) setLoading(false);
     }
   };
 
@@ -83,19 +95,20 @@ function LibraryScreen({ navigation }) {
     }
   };
 
-  // Filter docs by category and search
   const filteredDocs = docs.filter(doc => {
     const matchesCategory = !selectedCategory || doc.category?._id === selectedCategory;
-    const matchesSearch = !searchQuery || 
+    const matchesSearch =
+      !searchQuery ||
       doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
- 
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
+      activeOpacity={0.85}
       onPress={() =>
         navigation.navigate('Reader', {
           docId: item._id,
@@ -103,15 +116,16 @@ function LibraryScreen({ navigation }) {
           subtitle: item.subtitle,
           totalPages: item.totalPages,
           type: item.type,
-          content: item.content, // For text content
-          // Build file URL using DOC_PATH so it works from emulator/device.
-          // Encode filename to handle spaces and special characters.
+          content: item.content,
           url: item.type === 'pdf' ? `${DOC_PATH}${encodeURIComponent(item.filename)}` : null,
         })
       }
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
+      {/* Top gradient accent band */}
+      <View style={styles.cardTopBand}>
+        <Text style={styles.cardTypeIcon}>
+          {item.type === 'text' ? '📖' : '📿'}
+        </Text>
         {item.category && (
           <View style={styles.categoryBadge}>
             <Text style={styles.categoryBadgeText}>
@@ -120,92 +134,113 @@ function LibraryScreen({ navigation }) {
           </View>
         )}
       </View>
-      <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
-      <Text style={styles.cardDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-      <View style={styles.cardFooter}>
-        <Text style={styles.cardMeta}>
-          {item.type === 'text' ? '📖' : '📄'} {item.totalPages} {item.totalPages === 1 ? 'page' : 'pages'}
-        </Text>
-        {item.author && <Text style={styles.cardAuthor}>By {item.author}</Text>}
+
+      {/* Card body */}
+      <View style={styles.cardBody}>
+        {/* Left gold accent strip */}
+        <View style={styles.cardAccentStrip} />
+
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          {item.subtitle ? (
+            <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+          ) : null}
+          <Text style={styles.cardDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+
+          <View style={styles.cardFooter}>
+            <Text style={styles.cardMeta}>
+              {item.totalPages} {item.totalPages === 1 ? t('library.page') : t('library.pages')}
+            </Text>
+            {item.author ? (
+              <Text style={styles.cardAuthor}>✍ {item.author}</Text>
+            ) : null}
+          </View>
+        </View>
       </View>
+
+      {/* Corner ornaments */}
+      <Text style={[styles.cornerOrnament, styles.cornerTL]}>✦</Text>
+      <Text style={[styles.cornerOrnament, styles.cornerTR]}>✦</Text>
+      <Text style={[styles.cornerOrnament, styles.cornerBL]}>✦</Text>
+      <Text style={[styles.cornerOrnament, styles.cornerBR]}>✦</Text>
     </TouchableOpacity>
   );
 
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading your library...</Text>
+        <Text style={styles.loaderOm}>ॐ</Text>
+        <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 12 }} />
+        <Text style={styles.loadingText}>{t('library.loadingTexts')}</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, isShortHeight && styles.containerCompact]}>
-      {/* HEADER */}
+    <View style={styles.container}>
+      {/* ── SPIRITUAL HEADER ── */}
       <View style={styles.header}>
+        <Text style={styles.headerOm}>ॐ</Text>
         <Text style={[styles.heading, isSmallWidth && styles.headingSmall]}>
-          📚 Your Library
+          {i18n.language === 'hi' ? t('library.hindiTitle') : t('library.title')}
         </Text>
+        {i18n.language === 'hi' && (
+          <Text style={styles.headingEn}>{t('library.title')}</Text>
+        )}
+        {/* Lotus divider */}
+        <View style={styles.lotusDivider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.lotusIcon}>❀</Text>
+          <View style={styles.dividerLine} />
+        </View>
       </View>
 
-      {/* Search Bar */}
+      {/* ── SEARCH BAR ── */}
       <View style={styles.searchContainer}>
+        <Text style={styles.searchPrefix}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search books, stories, mantras..."
-          placeholderTextColor="#999"
+          placeholder={t('library.searchPlaceholder')}
+          placeholderTextColor="#B07040"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
-      {/* Category Filter */}
-      <TouchableOpacity 
+      {/* ── CATEGORY FILTER ── */}
+      <TouchableOpacity
         style={styles.categoryToggle}
         onPress={() => setShowCategories(!showCategories)}
       >
         <Text style={styles.categoryToggleText}>
-          {showCategories ? '▲ Hide Categories' : '▼ Browse by Category'}
+          {showCategories ? t('library.hideCategories') : t('library.browseByCategory')}
         </Text>
       </TouchableOpacity>
 
       {showCategories && (
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
           <TouchableOpacity
-            style={[
-              styles.categoryChip,
-              !selectedCategory && styles.categoryChipActive
-            ]}
+            style={[styles.categoryChip, !selectedCategory && styles.categoryChipActive]}
             onPress={() => setSelectedCategory(null)}
           >
-            <Text style={[
-              styles.categoryChipText,
-              !selectedCategory && styles.categoryChipTextActive
-            ]}>
-              📚 All
+            <Text style={[styles.categoryChipText, !selectedCategory && styles.categoryChipTextActive]}>
+              🕉 {t('library.all')}
             </Text>
           </TouchableOpacity>
           {categories.map(cat => (
             <TouchableOpacity
               key={cat._id}
-              style={[
-                styles.categoryChip,
-                selectedCategory === cat._id && styles.categoryChipActive
-              ]}
+              style={[styles.categoryChip, selectedCategory === cat._id && styles.categoryChipActive]}
               onPress={() => setSelectedCategory(cat._id)}
             >
-              <Text style={[
-                styles.categoryChipText,
-                selectedCategory === cat._id && styles.categoryChipTextActive
-              ]}>
+              <Text style={[styles.categoryChipText, selectedCategory === cat._id && styles.categoryChipTextActive]}>
                 {cat.icon} {cat.name}
               </Text>
             </TouchableOpacity>
@@ -214,7 +249,7 @@ function LibraryScreen({ navigation }) {
       )}
 
       <Text style={styles.resultCount}>
-        {filteredDocs.length} {filteredDocs.length === 1 ? 'document' : 'documents'} found
+        ✦ {filteredDocs.length} {filteredDocs.length === 1 ? 'scripture' : 'scriptures'} found
       </Text>
 
       <FlatList
@@ -226,12 +261,12 @@ function LibraryScreen({ navigation }) {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🔍</Text>
+            <Text style={styles.emptyIcon}>🪷</Text>
             <Text style={styles.emptyText}>
-              {searchQuery ? 'No documents match your search' : 'No documents found'}
+              {searchQuery ? t('library.noMatch') : t('library.noScriptures')}
             </Text>
             <Text style={styles.emptySubtext}>
-              {searchQuery ? 'Try a different search term' : 'Check back later for new content'}
+              {searchQuery ? t('library.tryDifferent') : t('library.checkBack')}
             </Text>
           </View>
         }
@@ -243,181 +278,306 @@ function LibraryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    backgroundColor: '#FFF9F0',
+    backgroundColor: CREAM,
+    paddingTop: 48,
   },
-  containerCompact: {
-    paddingTop: 32,
-    paddingHorizontal: 16,
-  },
+
+  /* ── HEADER ── */
   header: {
-    marginBottom: 12,
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    backgroundColor: CREAM,
+  },
+  headerOm: {
+    fontSize: 42,
+    color: SAFFRON_DARK,
+    fontWeight: 'bold',
+    marginBottom: 2,
+    textShadowColor: GOLD,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   heading: {
-    fontSize: 26,
+    fontSize: typography.h2,
     fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 4,
+    color: DEEP_PURPLE,
+    letterSpacing: 1.5,
+    textShadowColor: GOLD_LIGHT,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   headingSmall: {
+    fontSize: typography.h3,
+  },
+  headingEn: {
+    fontSize: typography.bodySmall,
+    color: SAFFRON_DARK,
+    letterSpacing: 3,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  lotusDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    width: '80%',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1.5,
+    backgroundColor: GOLD,
+    opacity: 0.6,
+  },
+  lotusIcon: {
     fontSize: 22,
+    color: SAFFRON,
+    marginHorizontal: spacing.sm,
   },
-  subheading: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
+
+  /* ── SEARCH BAR ── */
   searchContainer: {
-    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBF0',
+    borderRadius: radius.round,
+    borderWidth: 1.5,
+    borderColor: SAFFRON,
+    paddingHorizontal: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    shadowColor: SAFFRON,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  searchPrefix: {
+    fontSize: 18,
+    marginRight: spacing.xs,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E0D7C7',
+    flex: 1,
+    paddingVertical: spacing.sm,
+    fontSize: typography.body,
+    color: MAROON,
+    minHeight: 52,
   },
+
+  /* ── CATEGORY FILTER ── */
   categoryToggle: {
-    marginBottom: 8,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: GOLD,
+    borderRadius: radius.round,
+    backgroundColor: '#FFF3DC',
   },
   categoryToggleText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: typography.bodySmall,
+    color: SAFFRON_DARK,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   categoriesContainer: {
-    marginBottom: 12,
-    maxHeight: 50,
+    marginBottom: spacing.md,
+    maxHeight: 62,
   },
   categoriesContent: {
-    paddingRight: 16,
+    paddingHorizontal: spacing.md,
   },
   categoryChip: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E0D7C7',
+    backgroundColor: '#FFF8EE',
+    borderRadius: radius.round,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginRight: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    minHeight: 48,
+    justifyContent: 'center',
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
   },
   categoryChipActive: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: SAFFRON,
+    borderColor: SAFFRON_DARK,
   },
   categoryChipText: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: typography.bodySmall,
+    color: SAFFRON_DARK,
+    fontWeight: '700',
   },
   categoryChipTextActive: {
-    color: '#FFFFFF',
+    color: '#ffffff',
   },
+
+  /* ── RESULT COUNT ── */
   resultCount: {
-    fontSize: 13,
-    color: '#888',
-    marginBottom: 8,
+    fontSize: typography.bodySmall,
+    color: SAFFRON_DARK,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.md,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
+
+  /* ── LIST ── */
   listContent: {
-    paddingBottom: 100,
+    paddingHorizontal: spacing.md,
+    paddingBottom: 130,
   },
+
+  /* ── BOOK CARD ── */
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: '#F0E8D8',
+    backgroundColor: CARD_BG,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    overflow: 'hidden',
+    shadowColor: SAFFRON_DARK,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  cardHeader: {
+  cardTopBand: {
+    backgroundColor: SAFFRON,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: GOLD,
   },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    flex: 1,
+  cardTypeIcon: {
+    fontSize: 18,
   },
   categoryBadge: {
-    backgroundColor: '#F3E8FF',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginLeft: 8,
+    backgroundColor: '#FFF3DC',
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: GOLD,
   },
   categoryBadgeText: {
-    fontSize: 11,
-    color: '#8B5CF6',
-    fontWeight: '500',
+    fontSize: typography.small,
+    color: SAFFRON_DARK,
+    fontWeight: '700',
   },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#555555',
+  cardBody: {
+    flexDirection: 'row',
+    padding: spacing.md,
+  },
+  cardAccentStrip: {
+    width: 4,
+    backgroundColor: GOLD,
+    borderRadius: 3,
+    marginRight: spacing.sm,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: typography.h4,
+    fontWeight: 'bold',
+    color: DEEP_PURPLE,
     marginBottom: 4,
   },
+  cardSubtitle: {
+    fontSize: typography.body,
+    color: SAFFRON_DARK,
+    marginBottom: 4,
+    fontStyle: 'italic',
+  },
   cardDescription: {
-    fontSize: 13,
-    color: '#777777',
-    marginBottom: 8,
-    lineHeight: 18,
+    fontSize: typography.bodySmall,
+    color: '#7A5C3A',
+    marginBottom: spacing.sm,
+    lineHeight: typography.bodySmall * 1.5,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    borderTopWidth: 0.5,
+    borderTopColor: GOLD_LIGHT,
+    paddingTop: 6,
+    marginTop: 2,
   },
   cardMeta: {
-    fontSize: 12,
-    color: '#888888',
-    fontWeight: '500',
+    fontSize: typography.small,
+    color: '#9A7040',
+    fontWeight: '600',
   },
   cardAuthor: {
-    fontSize: 12,
-    color: '#888888',
+    fontSize: typography.small,
+    color: '#9A7040',
+    fontStyle: 'italic',
   },
+
+  /* ── CORNER ORNAMENTS ── */
+  cornerOrnament: {
+    position: 'absolute',
+    fontSize: 10,
+    color: GOLD,
+  },
+  cornerTL: { top: 4, left: 4 },
+  cornerTR: { top: 4, right: 4 },
+  cornerBL: { bottom: 4, left: 4 },
+  cornerBR: { bottom: 4, right: 4 },
+
+  /* ── LOADER ── */
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF9F0',
+    backgroundColor: CREAM,
+  },
+  loaderOm: {
+    fontSize: 64,
+    color: SAFFRON,
+    textShadowColor: GOLD,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 14,
   },
   loadingText: {
-    marginTop: 12,
-    color: '#555',
-    fontSize: 16,
+    marginTop: spacing.md,
+    color: SAFFRON_DARK,
+    fontSize: typography.body,
+    fontStyle: 'italic',
+    letterSpacing: 0.5,
   },
+
+  /* ── EMPTY STATE ── */
   emptyContainer: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: spacing.xl,
   },
   emptyIcon: {
-    fontSize: 48,
-    marginBottom: 12,
+    fontSize: 64,
+    marginBottom: spacing.md,
   },
   emptyText: {
     textAlign: 'center',
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 4,
+    fontSize: typography.h4,
+    color: SAFFRON_DARK,
+    marginBottom: spacing.xs,
+    fontWeight: '600',
   },
   emptySubtext: {
     textAlign: 'center',
-    fontSize: 14,
-    color: '#999',
+    fontSize: typography.body,
+    color: '#B07040',
+    fontStyle: 'italic',
   },
 });
 

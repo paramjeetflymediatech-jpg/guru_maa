@@ -156,9 +156,11 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import colors from '../constants/theme';
+import colors, { spacing, typography, radius } from '../constants/theme';
 import { version } from '../../package.json';
+import { useTranslation } from 'react-i18next';
 function ProfileScreen({ navigation }) {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -178,8 +180,16 @@ function ProfileScreen({ navigation }) {
 
     loadUser();
   }, []); 
+  const handleLanguageChange = () => {
+    Alert.alert(t('profile.changeLanguage'), '', [
+      { text: 'English', onPress: () => i18n.changeLanguage('en') },
+      { text: 'हिन्दी', onPress: () => i18n.changeLanguage('hi') },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
+
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    Alert.alert(t('common.logout'), t('profile.logoutConfirm'), [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -223,44 +233,38 @@ function ProfileScreen({ navigation }) {
           <Text style={styles.userEmail}>{user?.email || ''}</Text>
           <View style={styles.verifiedBadge}>
             <Text style={styles.verifiedText}>
-              {user?.isVerified ? '✓ Verified Account' : 'Not Verified'}
+              {user?.isVerified ? t('profile.verified') : t('profile.notVerified')}
             </Text>
           </View>
         </View>
 
         {/* Menu Sections */}
         <View style={styles.menuSection}>
-          {/* <Text style={styles.sectionTitle}>Information</Text> */}
           <View style={styles.menuCard}>
-            {/* <MenuItem
-              icon="📚"
-              title="My Library"
-              onPress={() => handleMenuItem('Library')}
-            />
             <MenuItem
-              icon="👤"
-              title="Edit Profile"
-              onPress={() => handleMenuItem('EditProfile')}
-            /> */}
+              icon="🌐"
+              title={t('profile.changeLanguage')}
+              onPress={handleLanguageChange}
+            />
           </View>
         </View>
 
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Legal</Text>
+          <Text style={styles.sectionTitle}>{t('profile.legal')}</Text>
           <View style={styles.menuCard}>
             <MenuItem
               icon="ℹ️"
-              title="About App"
+              title={t('profile.about')}
               onPress={() => handleMenuItem('About')}
             />
             <MenuItem
               icon="🔒"
-              title="Privacy Policy"
+              title={t('profile.privacy')}
               onPress={() => handleMenuItem('PrivacyPolicy')}
             />
             <MenuItem
               icon="📝"
-              title="Terms & Conditions"
+              title={t('profile.terms')}
               onPress={() => handleMenuItem('TermsConditions')}
             />
           </View>
@@ -273,7 +277,7 @@ function ProfileScreen({ navigation }) {
           activeOpacity={0.8}
         >
           <Text style={styles.logoutIcon}>🚪</Text>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
         {/* Footer */}
@@ -306,37 +310,38 @@ function MenuItem({ icon, title, onPress }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: colors.backgroundSecondary,
   },
 
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.md,
     paddingTop: 100,
-    paddingBottom: 40,
-    itemsAlignItems: 'center',
-    itemjustifyContent: 'center',
+    paddingBottom: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
+    backgroundColor: colors.backgroundSecondary,
   },
 
   // Header Section
   headerSection: {
     alignItems: 'center',
-    marginBottom: 32,
-    paddingVertical: 24,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
+    width: '100%',
   },
 
   initialsContainer: {
@@ -346,60 +351,61 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
 
   initialsText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.textOnPrimary,
   },
 
   userName: {
-    fontSize: 20,
+    fontSize: typography.h3,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     textTransform: 'capitalize',
   },
 
   userEmail: {
-    fontSize: 15,
+    fontSize: typography.body,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
 
   verifiedBadge: {
     backgroundColor: colors.success + '20',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.xl,
   },
 
   verifiedText: {
-    fontSize: 13,
+    fontSize: typography.bodySmall,
     color: colors.success,
     fontWeight: '600',
   },
 
   // Menu Sections
   menuSection: {
-    marginBottom: 20,
+    marginBottom: spacing.md,
+    width: '100%',
   },
 
   sectionTitle: {
-    fontSize: 14,
+    fontSize: typography.bodySmall,
     fontWeight: '600',
     color: colors.textTertiary,
-    marginBottom: 12,
-    marginLeft: 4,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
 
   menuCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -412,10 +418,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    minHeight: 56, // Larger touch target
   },
 
   menuItemLeft: {
@@ -424,18 +431,18 @@ const styles = StyleSheet.create({
   },
 
   menuIcon: {
-    fontSize: 20,
-    marginRight: 14,
+    fontSize: 24,
+    marginRight: spacing.md,
   },
 
   menuTitle: {
-    fontSize: 16,
+    fontSize: typography.body,
     color: colors.textPrimary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   menuArrow: {
-    fontSize: 22,
+    fontSize: 28,
     color: colors.textTertiary,
     fontWeight: '300',
   },
@@ -446,32 +453,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.error,
-    paddingVertical: 16,
-    borderRadius: 14,
-    marginTop: 20,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
     shadowColor: colors.error,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    minHeight: 56, // Larger touch target
+    width: '100%',
   },
 
   logoutIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    fontSize: 22,
+    marginRight: spacing.sm,
   },
 
   logoutText: {
-    color: '#ffffff',
+    color: colors.textOnPrimary,
     fontWeight: '700',
-    fontSize: 17,
+    fontSize: typography.button,
   },
 
   // Footer
   versionText: {
     textAlign: 'center',
-    marginTop: 24,
-    fontSize: 13,
+    marginTop: spacing.lg,
+    fontSize: typography.bodySmall,
     color: colors.textTertiary,
   },
 });

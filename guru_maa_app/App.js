@@ -13,6 +13,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 
 import colors from './src/constants/theme';
 
@@ -98,6 +99,7 @@ function TabIcon({ name, focused, color }) {
 
 // Main Tab Navigator - Contains the main app screens
 function MainTabs() {
+  const { t } = useTranslation();
   return (
     <MainTab.Navigator
       screenOptions={({ route }) => ({
@@ -115,7 +117,7 @@ function MainTabs() {
         name="Library" 
         component={LibraryScreen}
         options={{ 
-          tabBarLabel: 'Library',
+          tabBarLabel: t('library.title'),
           tabBarAccessibilityLabel: 'Navigate to Library'
         }}
       />
@@ -123,7 +125,7 @@ function MainTabs() {
         name="Profile" 
         component={ProfileScreen}
         options={{ 
-          tabBarLabel: 'Profile',
+          tabBarLabel: t('profile.title'),
           tabBarAccessibilityLabel: 'Navigate to Profile'
         }}
       />
@@ -133,6 +135,7 @@ function MainTabs() {
 
 // Auth Stack Navigator - For authentication screens
 function AuthNavigator() {
+  const { t } = useTranslation();
   return (
     <AuthStack.Navigator
       screenOptions={{ 
@@ -151,7 +154,7 @@ function AuthNavigator() {
         name="Register"
         component={RegisterScreen}
         options={{ 
-          title: 'Create Account',
+          title: t('register.title'),
           headerShown: true,
         }}
       />
@@ -178,6 +181,7 @@ function AuthNavigator() {
 
 // Root Navigator
 function RootNavigator() {
+  const { t } = useTranslation();
   return (
     <RootStack.Navigator
       initialRouteName="Splash"
@@ -242,7 +246,7 @@ function RootNavigator() {
         name="TermsConditions"
         component={TermsConditionsScreen}
         options={{ 
-          title: 'Terms & Conditions',
+          title: t('profile.terms'),
           headerShown: true,
           headerStyle: { backgroundColor: colors.headerBackground },
           headerTintColor: colors.headerTint,

@@ -168,7 +168,7 @@ import {
 } from 'react-native';
 
 import { forgotPassword } from '../api/auth.api';
-import colors from '../constants/theme';
+import colors, { spacing, typography, radius } from '../constants/theme';
 
 
 function ForgotPasswordScreen({ navigation }) {
@@ -261,47 +261,52 @@ function ForgotPasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
     justifyContent: 'center',
-    paddingBottom: 20,
+    paddingBottom: spacing.lg,
   },
 
   formWrapper: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.lg,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: typography.h2,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
     textAlign: 'center',
+    color: colors.textPrimary,
   },
 
   subtitle: {
-    fontSize: 15,
+    fontSize: typography.body,
     textAlign: 'center',
-    marginBottom: 24,
-    color: '#6b7280',
+    marginBottom: spacing.lg,
+    color: colors.textSecondary,
+    lineHeight: typography.body * 1.5,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 16,
-    fontSize: 15,
-    color: '#111827',
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    fontSize: typography.input,
+    color: colors.textPrimary,
+    backgroundColor: colors.backgroundSecondary,
+    minHeight: 56, // Larger touch target
   },
 
   primaryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+    minHeight: 56, // Larger touch target
   },
 
   disabledButton: {
@@ -309,16 +314,18 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: '#ffffff',
+    color: colors.textOnPrimary,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: typography.button,
   },
 
   linkText: {
     color: colors.primary,
     textAlign: 'center',
-    marginTop: 10,
-    fontSize: 14,
+    marginTop: spacing.sm,
+    fontSize: typography.body,
+    fontWeight: '600',
+    padding: spacing.sm, // Larger touch target
   },
 });
 

@@ -9,6 +9,7 @@ const {
   DOCS_ROOT,
   getAllDocuments,
   getPaginatedDocuments,
+  getDocumentById,
   createDocument,
   deleteDocument,
   getDocumentCount,
@@ -461,7 +462,6 @@ async function handleTextCreate(req, res) {
 async function showEditDoc(req, res) {
   try {
     const { id } = req.params;
-    const { getDocumentById } = require("../models/documentModel");
     const doc = await getDocumentById(id);
     const categories = await getAllCategories();
     
@@ -486,9 +486,10 @@ async function showEditDoc(req, res) {
 async function handleDocUpdate(req, res) {
   try {
     const { id } = req.params;
-    const { title, subtitle, description, category, author, totalPages, isPublished, isFeatured } = req.body;
+    const { title, subtitle, description, category, author, totalPages, isPublished, isFeatured, textContent, htmlContent } = req.body;
     
-    await updateDocument(id, {
+    // Build update object with basic fields
+    const updateData = {
       title,
       subtitle,
       description,
@@ -497,7 +498,19 @@ async function handleDocUpdate(req, res) {
       totalPages: parseInt(totalPages) || 1,
       isPublished: isPublished === 'on',
       isFeatured: isFeatured === 'on',
-    });
+    };
+    
+    // Add text content if provided (for text documents)
+    if (textContent !== undefined) {
+      updateData.textContent = textContent.trim().substring(0, 50000);
+    }
+    
+    // Add HTML content if provided (for HTML documents)
+    if (htmlContent !== undefined) {
+      updateData.htmlContent = htmlContent.trim().substring(0, 100000);
+    }
+    
+    await updateDocument(id, updateData);
     
     req.session.flash = {
       type: "success",

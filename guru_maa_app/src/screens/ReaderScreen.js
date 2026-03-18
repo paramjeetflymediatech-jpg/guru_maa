@@ -1,263 +1,65 @@
-// import React, { useState, useMemo, useRef, useEffect } from 'react';
-// import {
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   ScrollView,
-//   StyleSheet,
-//   Alert,
-//   Linking,
-//   Dimensions,
-// } from 'react-native';
-// import Pdf from 'react-native-pdf';
-// import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-
-// /* ================= DEMO TEXT CONTENT ================= */
-
-// const CONTENT = {
-//   'gita-1': {
-//     1: `Chapter 1:
-// Throughout her life Maa attracted destitute and distressed people...`,
-//     2: 'Chapter 2: Sankhya Yoga\n\nContent for chapter 2...',
-//   },
-//   'mantra-1': {
-//     1: 'Om Bhur Bhuvaḥ Swaḥ\nTat-savitur vareṇyaṃ...',
-//   },
-// };
-
-// /* ================= READER SCREEN ================= */
-
-// function ReaderScreen({ route }) {
-//   const {
-//     docId,
-//     title,
-//     totalPages = 1,
-//     type = 'pdf',
-//     url,
-//   } = route.params || {};
-
-//   const pdfRef = useRef(null);
-
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [pdfPages, setPdfPages] = useState(0);
-//   const [pageRatio, setPageRatio] = useState(1);
-//   const [screen, setScreen] = useState(Dimensions.get('window'));
-
-//   const isPdf = type === 'pdf';
-//   const isPdfReady = pdfPages > 0;
-
-//   /* ================= ORIENTATION SAFE ================= */
-
-//   useEffect(() => {
-//     const sub = Dimensions.addEventListener('change', ({ window }) => {
-//       setScreen(window);
-//     });
-//     return () => sub?.remove();
-//   }, []);
-
-//   useEffect(() => {
-//     if (isPdfReady && currentPage > pdfPages) {
-//       setCurrentPage(1);
-//     }
-//   }, [screen.width, pdfPages]);
-
-//   /* ================= SAFE PDF HEIGHT ================= */
-
-//   const getSafePdfHeight = () => {
-//     if (!pageRatio || pageRatio <= 0) {
-//       return screen.height * 0.8;
-//     }
-
-//     const calculated = screen.width / pageRatio;
-
-//     return Math.min(
-//       Math.max(calculated, screen.height * 0.6),
-//       screen.height * 0.9,
-//     );
-//   };
-
-//   /* ================= GESTURE ================= */
-
-//   const panGesture = Gesture.Pan().onEnd(e => {
-//     if (!isPdfReady) return;
-
-//     if (e.translationX < -50 && currentPage < pdfPages) {
-//       setCurrentPage(p => p + 1);
-//     }
-
-//     if (e.translationX > 50 && currentPage > 1) {
-//       setCurrentPage(p => p - 1);
-//     }
-//   });
-
-//   /* ================= EXTERNAL OPEN ================= */
-
-//   const handleOpenExternal = () => {
-//     if (!url) {
-//       Alert.alert('No document URL');
-//       return;
-//     }
-//     Linking.openURL(url).catch(() => Alert.alert('Cannot open document'));
-//   };
-
-//   /* ================= TEXT MODE ================= */
-
-//   const pages = useMemo(
-//     () => Array.from({ length: totalPages }, (_, i) => i + 1),
-//     [totalPages],
-//   );
-
-//   const pageContent =
-//     CONTENT[docId]?.[currentPage] || 'Content for this page is not yet added.';
-
-//   /* ================= RENDER ================= */
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>{title}</Text>
-
-//       {/* ================= PDF MODE ================= */}
-//       {isPdf && url ? (
-//         <>
-//           <GestureDetector gesture={panGesture}>
-//             <View style={styles.pdfContainer}>
-//               <Pdf
-//                 ref={pdfRef}
-//                 source={{ uri: url, cache: true }}
-//                 page={currentPage}
-//                 scale={1}
-//                 minScale={1}
-//                 maxScale={3}
-//                 horizontal={false}
-//                 enablePaging={false}
-//                 spacing={0}
-//                 trustAllCerts={false}
-//                 onLoadComplete={(pages, filePath, { width, height }) => {
-//                   if (width && height) {
-//                     setPageRatio(width / height);
-//                   }
-//                   setPdfPages(pages);
-//                 }}
-//                 onError={error => {
-//                   Alert.alert(
-//                     'PDF Error',
-//                     error?.message || 'Failed to load PDF',
-//                   );
-//                 }}
-//                 style={[styles.pdf, { height: getSafePdfHeight() }]}
-//               />
-//             </View>
-//           </GestureDetector>
-
-//           {/* ===== PDF CONTROLS ===== */}
-//           <View style={styles.pdfControls}>
-//             <TouchableOpacity
-//               disabled={!isPdfReady || currentPage <= 1}
-//               onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
-//             >
-//               <Text
-//                 style={[
-//                   styles.pdfBtn,
-//                   (!isPdfReady || currentPage <= 1) && styles.disabledBtn,
-//                 ]}
-//               >
-//                 ⬅ Prev
-//               </Text>
-//             </TouchableOpacity>
-
-//             <Text style={styles.pdfPageText}>
-//               {currentPage} / {pdfPages || '-'}
-//             </Text>
-
-//             <TouchableOpacity
-//               disabled={!isPdfReady || currentPage >= pdfPages}
-//               onPress={() => setCurrentPage(p => Math.min(pdfPages, p + 1))}
-//             >
-//               <Text
-//                 style={[
-//                   styles.pdfBtn,
-//                   (!isPdfReady || currentPage >= pdfPages) &&
-//                     styles.disabledBtn,
-//                 ]}
-//               >
-//                 Next ➡
-//               </Text>
-//             </TouchableOpacity>
-//           </View>
-//         </>
-//       ) : type === 'text' ? (
-//         /* ================= TEXT MODE ================= */
-//         <>
-//           <Text style={styles.pageLabel}>
-//             Page {currentPage} of {totalPages}
-//           </Text>
-
-//           <ScrollView
-//             style={styles.contentBox}
-//             contentContainerStyle={styles.contentInner}
-//           >
-//             <Text style={styles.contentText}>{pageContent}</Text>
-//           </ScrollView>
-
-//           <View style={styles.pageSelector}>
-//             {pages.map(page => (
-//               <TouchableOpacity
-//                 key={page}
-//                 style={[
-//                   styles.pageButton,
-//                   page === currentPage && styles.pageButtonActive,
-//                 ]}
-//                 onPress={() => setCurrentPage(page)}
-//               >
-//                 <Text
-//                   style={[
-//                     styles.pageButtonText,
-//                     page === currentPage && styles.pageButtonTextActive,
-//                   ]}
-//                 >
-//                   {page}
-//                 </Text>
-//               </TouchableOpacity>
-//             ))}
-//           </View>
-//         </>
-//       ) : (
-//         /* ================= OTHER FILES ================= */
-//         <View style={styles.nonTextContainer}>
-//           <Text style={styles.nonTextTitle}>Document type: {type}</Text>
-//           <Text style={styles.nonTextDescription}>
-//             This document will open in an external application.
-//           </Text>
-//           <TouchableOpacity
-//             style={styles.externalButton}
-//             onPress={handleOpenExternal}
-//           >
-//             <Text style={styles.externalButtonText}>Open document</Text>
-//           </TouchableOpacity>
-//         </View>
-//       )}
-//     </View>
-//   );
-// }
-
-
-
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
-  Alert,
   Linking,
   Dimensions,
+  Animated,
+  ActivityIndicator,
+  StatusBar,
+  ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Pdf from 'react-native-pdf';
+import {
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import colors, { spacing, typography, radius } from '../constants/theme';
 
-/* ================= READER SCREEN ================= */
+// Spiritual color palette
+const SAFFRON = '#FF9933';
+const SAFFRON_DARK = '#E67300';
+const GOLD = '#D4AF37';
+const GOLD_LIGHT = '#F5E7A0';
+const MAROON = '#6B0000';
+const DEEP_PURPLE = '#4A0072';
+const CREAM = '#FFF8EE';
+const HEADER_BG = '#3D0000';
 
-function ReaderScreen({ route }) {
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+/* ───────────────────────────────────────────
+   Spiritual Corner Ornament component
+─────────────────────────────────────────── */
+function SpiritualBorder({ children, style }) {
+  return (
+    <View style={[styles.spiritualFrame, style]}>
+      {/* Outer border layer */}
+      <View style={styles.borderLayerOuter}>
+        {/* Inner border layer */}
+        <View style={styles.borderLayerInner}>
+          {/* Content */}
+          <View style={styles.borderContent}>{children}</View>
+        </View>
+      </View>
+      {/* Corner ornaments — positioned absolute on the outermost frame */}
+      <Text style={[styles.ornament, styles.ornamentTL]}>✦</Text>
+      <Text style={[styles.ornament, styles.ornamentTR]}>✦</Text>
+      <Text style={[styles.ornament, styles.ornamentBL]}>✦</Text>
+      <Text style={[styles.ornament, styles.ornamentBR]}>✦</Text>
+      {/* Mid-edge ornaments */}
+      <Text style={[styles.ornamentMid, styles.ornamentMT]}>❈</Text>
+      <Text style={[styles.ornamentMid, styles.ornamentMB]}>❈</Text>
+    </View>
+  );
+}
+
+/* ───────────────────────────────────────────
+   READER SCREEN
+─────────────────────────────────────────── */
+function ReaderScreen({ route, navigation }) {
   const {
     docId,
     title,
@@ -265,372 +67,652 @@ function ReaderScreen({ route }) {
     totalPages = 1,
     type = 'pdf',
     url,
-    content, // Text content passed from Library
+    content,
   } = route.params || {};
- 
+
+  const insets = useSafeAreaInsets();
   const [currentPage, setCurrentPage] = useState(1);
-  const [screen, setScreen] = useState(Dimensions.get('window'));
-  const [fontSize, setFontSize] = useState(18);
-  const [showSettings, setShowSettings] = useState(false);
+  const [totalPdfPages, setTotalPdfPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState(null);
+
+  const pdfRef = useRef(null);
+
+  // Swipe flash animation
+  const swipeFlash = useRef(new Animated.Value(0)).current;
+  const swipeFlashColor = useRef(new Animated.Value(0)).current; // 0=left, 1=right
 
   const isPdf = type === 'pdf';
   const isText = type === 'text';
   const isHtml = type === 'html';
-
-  // Use content passed from library if available, otherwise use route params
   const textContent = content || '';
 
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
-      setScreen(window);
-    });
+  const flashSwipeIndicator = useCallback((direction) => {
+    swipeFlashColor.setValue(direction === 'right' ? 1 : 0);
+    Animated.sequence([
+      Animated.timing(swipeFlash, { toValue: 1, duration: 120, useNativeDriver: false }),
+      Animated.timing(swipeFlash, { toValue: 0, duration: 300, useNativeDriver: false }),
+    ]).start();
+  }, [swipeFlash, swipeFlashColor]);
 
-    return () => {
-      if (typeof subscription?.remove === 'function') {
-        subscription.remove();
-      } else if (typeof subscription === 'function') {
-        subscription();
-      }
-    };
+  const handlePdfLoadComplete = useCallback((numberOfPages) => {
+    setTotalPdfPages(numberOfPages);
+    setIsLoading(false);
+    setLoadingError(null);
   }, []);
 
-  const handleOpenExternal = () => {
-    if (!url) {
-      Alert.alert('No document URL');
-      return;
+  const handlePdfError = useCallback((error) => {
+    setIsLoading(false);
+    setLoadingError(error?.message || 'Failed to load PDF');
+  }, []);
+
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+  }, []);
+
+  const goToPreviousPage = useCallback(() => {
+    if (currentPage > 1) {
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      pdfRef.current?.setPage(newPage);
+      flashSwipeIndicator('right');
     }
-    Linking.openURL(url).catch(() => Alert.alert('Cannot open document'));
+  }, [currentPage, flashSwipeIndicator]);
+
+  const goToNextPage = useCallback(() => {
+    if (currentPage < totalPdfPages) {
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      pdfRef.current?.setPage(newPage);
+      flashSwipeIndicator('left');
+    }
+  }, [currentPage, totalPdfPages, flashSwipeIndicator]);
+
+  // Gesture handler for swipe-to-navigate removed to avoid conflict with PDF zoom
+  // Tap zones and native PDF paging are now the primary navigation methods
+
+  const handleOpenExternal = useCallback(() => {
+    if (!url) { setLoadingError('No document URL'); return; }
+    Linking.openURL(url).catch(() => setLoadingError('Cannot open document'));
+  }, [url]);
+
+  /* ── Page progress bar ── */
+  const progressWidth = totalPdfPages > 0
+    ? (currentPage / totalPdfPages) * (screenWidth - spacing.md * 2 - 32)
+    : 0;
+
+  /* ── PDF VIEWER ── */
+  const renderPdfViewer = () => {
+    if (!url) return renderExternalViewer();
+
+    return (
+      <View style={styles.pdfWrapper}>
+        <SpiritualBorder style={styles.pdfFrameOuter}>
+          {/* Loading Overlay */}
+          {isLoading && (
+            <View style={styles.loadingOverlay}>
+              <Text style={styles.loaderOm}>ॐ</Text>
+              <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 8 }} />
+              <Text style={styles.loadingText}>Loading sacred text…</Text>
+            </View>
+          )}
+
+          {/* Error Overlay */}
+          {loadingError && (
+            <View style={styles.errorOverlay}>
+              <Text style={styles.errorText}>⚠ {loadingError}</Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => { setIsLoading(true); setLoadingError(null); }}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.pdfContainer}>
+            <Pdf
+              ref={pdfRef}
+              source={{ uri: url, cache: true }}
+              trustAllCerts={false}
+              minScale={1}
+              maxScale={3}
+              horizontal={true}
+              enablePaging={true}
+              spacing={0}
+              style={styles.pdf}
+              onLoadStart={() => setIsLoading(true)}
+              onLoadComplete={handlePdfLoadComplete}
+              onError={handlePdfError}
+              onPageChanged={handlePageChange}
+            />
+          </View>
+        </SpiritualBorder>
+
+        {/* Tap zones for edge navigation */}
+        <TouchableOpacity
+          style={styles.tapZoneLeft}
+          onPress={goToPreviousPage}
+          activeOpacity={0.2}
+        />
+        <TouchableOpacity
+          style={styles.tapZoneRight}
+          onPress={goToNextPage}
+          activeOpacity={0.2}
+        />
+
+        {/* Swipe flash feedback */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.swipeFlashOverlay,
+            {
+              opacity: swipeFlash,
+              backgroundColor: swipeFlashColor.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['rgba(255,153,51,0.15)', 'rgba(255,153,51,0.15)'],
+              }),
+            },
+          ]}
+        />
+
+        {/* Bottom controls */}
+        {renderPageControls(totalPdfPages)}
+      </View>
+    );
   };
 
-  const increaseFontSize = () => {
-    if (fontSize < 32) setFontSize(fontSize + 2);
-  };
-
-  const decreaseFontSize = () => {
-    if (fontSize > 12) setFontSize(fontSize - 2);
-  };
-
-  const pages = useMemo(
-    () => Array.from({ length: totalPages }, (_, i) => i + 1),
-    [totalPages],
-  );
-
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+  /* ── Page controls (shared by pdf/text) ── */
+  const renderPageControls = (total) => (
+    <View style={styles.pageControlsContainer}>
+      {/* Progress bar */}
+      <View style={styles.progressBarTrack}>
+        <View style={[styles.progressBarFill, { width: progressWidth }]} />
       </View>
 
-      {/* Settings Toggle */}
-      <View style={styles.settingsBar}>
+      {/* Nav row */}
+      <View style={styles.pageInfoCard}>
         <TouchableOpacity
-          style={styles.settingsBtn}
-          onPress={() => setShowSettings(!showSettings)}
+          style={[styles.navButton, currentPage <= 1 && styles.navButtonDisabled]}
+          onPress={goToPreviousPage}
+          disabled={currentPage <= 1}
         >
-          <Text style={styles.settingsBtnText}>
-            {showSettings ? '✕ Close' : '⚙️ Settings'}
+          <Text style={[styles.navButtonText, currentPage <= 1 && styles.navButtonTextDisabled]}>
+            ← पिछला
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.pageIndicatorPill}>
+          <Text style={styles.pageIndicatorOm}>ॐ</Text>
+          <Text style={styles.pageNumberText}>{currentPage}</Text>
+          <Text style={styles.pageSeparator}> / </Text>
+          <Text style={styles.pageTotalText}>{total || '--'}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.navButton, currentPage >= total && styles.navButtonDisabled]}
+          onPress={goToNextPage}
+          disabled={currentPage >= total}
+        >
+          <Text style={[styles.navButtonText, currentPage >= total && styles.navButtonTextDisabled]}>
+            अगला →
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Font Size Controls */}
-      {showSettings && isText && (
-        <View style={styles.fontControls}>
-          <TouchableOpacity
-            style={styles.fontBtn}
-            onPress={decreaseFontSize}
-          >
-            <Text style={styles.fontBtnText}>A-</Text>
-          </TouchableOpacity>
-          <Text style={styles.fontSizeLabel}>{fontSize}px</Text>
-          <TouchableOpacity
-            style={styles.fontBtn}
-            onPress={increaseFontSize}
-          >
-            <Text style={styles.fontBtnText}>A+</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* ========== PDF MODE ========== */}
-      {isPdf && url ? (
-        <View style={styles.pdfContainer}>
-          <Pdf
-            source={{ uri: url, cache: true }}
-            trustAllCerts={false}
-            minScale={1}
-            maxScale={6}
-            horizontal={false}
-            enablePaging={false}
-            spacing={0}
-            style={[
-              styles.pdf,
-              { width: screen.width, height: screen.height * 0.75 },
-            ]}
-            onLoadStart={() => {
-              console.log('[PDF] Loading started for URL:', url);
-            }}
-            onLoadComplete={(numberOfPages, filePath, dimensions) => {
-              console.log('[PDF] Loaded:', numberOfPages, 'pages');
-            }}
-            onError={error => {
-              console.error('[PDF] Error:', error);
-              console.log('[PDF] URL being used:', url);
-              Alert.alert(
-                'PDF Error',
-                error?.message || 'Failed to load PDF',
-              );
-            }}
-          />
-        </View>
-      ) : isText ? (
-        /* ========== TEXT MODE ========== */
-        <>
-          <Text style={styles.pageLabel}>
-            Page {currentPage} of {totalPages}
-          </Text>
-
-          <ScrollView
-            style={styles.contentBox}
-            contentContainerStyle={styles.contentInner}
-          >
-            <Text style={[styles.contentText, { fontSize }]}>
-              {textContent || 'Content not available'}
-            </Text>
-          </ScrollView>
-
-          <View style={styles.pageSelector}>
-            {pages.map(page => (
-              <TouchableOpacity
-                key={page}
-                style={[
-                  styles.pageButton,
-                  page === currentPage && styles.pageButtonActive,
-                ]}
-                onPress={() => setCurrentPage(page)}
-              >
-                <Text
-                  style={[
-                    styles.pageButtonText,
-                    page === currentPage && styles.pageButtonTextActive,
-                  ]}
-                >
-                  {page}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </>
-      ) : isHtml ? (
-        /* ========== HTML MODE ========== */
-        <ScrollView
-          style={styles.contentBox}
-          contentContainerStyle={styles.contentInner}
-        >
-          <Text style={[styles.contentText, { fontSize }]}>
-            {content || 'Content not available'}
-          </Text>
-        </ScrollView>
-      ) : (
-        /* ========== OTHER FILE TYPES ========== */
-        <View style={styles.nonTextContainer}>
-          <Text style={styles.nonTextTitle}>Document type: {type}</Text>
-          <Text style={styles.nonTextDescription}>
-            This document will open in an external application.
-          </Text>
-          <TouchableOpacity
-            style={styles.externalButton}
-            onPress={handleOpenExternal}
-          >
-            <Text style={styles.externalButtonText}>Open document</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Swipe hint */}
+      {total > 1 && (
+        <Text style={styles.swipeHint}>
+          ❈ स्वाइप करें पृष्ठ बदलने के लिए ❈
+        </Text>
       )}
     </View>
   );
-}
-/* ================= STYLES ================= */
 
+  /* ── EXTERNAL VIEWER ── */
+  const renderExternalViewer = () => (
+    <SpiritualBorder style={{ flex: 1, margin: spacing.md }}>
+      <View style={styles.externalInner}>
+        <Text style={styles.externalOm}>ॐ</Text>
+        <Text style={styles.externalTitle}>Sacred Document</Text>
+        <Text style={styles.externalDescription}>
+          This document will open in an external reader
+        </Text>
+        <TouchableOpacity style={styles.externalButton} onPress={handleOpenExternal}>
+          <Text style={styles.externalButtonText}>Open Document</Text>
+        </TouchableOpacity>
+      </View>
+    </SpiritualBorder>
+  );
+
+  /* ── TEXT READER ── */
+  const renderTextReader = () => (
+    <View style={styles.textWrapper}>
+      <SpiritualBorder style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.contentScrollInner}>
+          <Text style={styles.contentText}>{textContent || 'Content not available'}</Text>
+        </ScrollView>
+      </SpiritualBorder>
+      {totalPages > 1 && renderPageControls(totalPages)}
+    </View>
+  );
+
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={HEADER_BG} />
+
+      {/* ── SPIRITUAL HEADER ── */}
+      <View style={[styles.header, { paddingTop: insets.top + spacing.xs }]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>← वापस</Text>
+        </TouchableOpacity>
+
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerOm}>ॐ</Text>
+          <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          {subtitle ? (
+            <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+          ) : null}
+        </View>
+
+        {/* Decorative right side */}
+        <View style={styles.headerRight}>
+          <Text style={styles.headerFlower}>❀</Text>
+        </View>
+      </View>
+
+      {/* Gold border under header */}
+      <View style={styles.headerGoldBorder} />
+
+      {/* ── MAIN CONTENT ── */}
+      <View style={styles.mainContent}>
+        {isPdf && url && renderPdfViewer()}
+        {isText && renderTextReader()}
+        {isHtml && (
+          <SpiritualBorder style={{ flex: 1, margin: spacing.md }}>
+            <View style={styles.externalInner}>
+              <Text style={styles.externalTitle}>HTML content</Text>
+              <Text style={styles.externalDescription}>Use text mode for best experience</Text>
+            </View>
+          </SpiritualBorder>
+        )}
+        {!isPdf && !isText && !isHtml && renderExternalViewer()}
+      </View>
+    </GestureHandlerRootView>
+  );
+}
+
+/* ───────────────────────────────────────────
+   STYLES
+─────────────────────────────────────────── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#FFFDF7',
+    backgroundColor: CREAM,
   },
+
+  /* ── HEADER ── */
   header: {
-    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+    backgroundColor: HEADER_BG,
+  },
+  headerGoldBorder: {
+    height: 3,
+    backgroundColor: GOLD,
+  },
+  backButton: {
+    paddingVertical: spacing.xs,
+    paddingRight: spacing.sm,
+    minWidth: 70,
+  },
+  backButtonText: {
+    fontSize: typography.body,
+    color: GOLD_LIGHT,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerOm: {
+    fontSize: 22,
+    color: SAFFRON,
+    fontWeight: 'bold',
+    lineHeight: 26,
   },
   title: {
-    fontSize: 22,
+    fontSize: typography.h4,
     fontWeight: 'bold',
-    marginBottom: 4,
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
+    fontSize: typography.small,
+    color: GOLD_LIGHT,
+    marginTop: 2,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
-  settingsBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
+  headerRight: {
+    minWidth: 70,
+    alignItems: 'flex-end',
   },
-  settingsBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-  },
-  settingsBtnText: {
-    fontSize: 13,
-    color: '#666',
-  },
-  fontControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  fontBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fontBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  fontSizeLabel: {
-    marginHorizontal: 20,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  pageLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
+  headerFlower: {
+    fontSize: 24,
+    color: SAFFRON,
   },
 
-  /* ===== TEXT MODE ===== */
-  contentBox: {
+  /* ── MAIN CONTENT ── */
+  mainContent: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0D7C7',
-    backgroundColor: '#FFFEFA',
-    paddingHorizontal: 12,
-  },
-  contentInner: {
-    paddingVertical: 12,
-  },
-  contentText: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  pageSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginTop: 12,
-  },
-  pageButton: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#D0C0A0',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    margin: 4,
-    backgroundColor: '#FFF',
-  },
-  pageButtonActive: {
-    backgroundColor: '#F3D9A4',
-    borderColor: '#E0B86A',
-  },
-  pageButtonText: {
-    fontSize: 14,
-    color: '#555',
-  },
-  pageButtonTextActive: {
-    fontWeight: 'bold',
-    color: '#3B2A00',
+    backgroundColor: CREAM,
   },
 
-  /* ===== PDF MODE ===== */
+  /* ── SPIRITUAL BORDER FRAME ── */
+  spiritualFrame: {
+    borderRadius: radius.lg,
+    // outer gold dot border
+    borderWidth: 2,
+    borderColor: GOLD,
+    borderStyle: 'dotted',
+    padding: 4,
+    overflow: 'visible',
+  },
+  borderLayerOuter: {
+    flex: 1,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: SAFFRON,
+    padding: 3,
+    overflow: 'hidden',
+  },
+  borderLayerInner: {
+    flex: 1,
+    borderRadius: radius.sm,
+    borderWidth: 4,
+    borderColor: GOLD_LIGHT,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+  },
+  borderContent: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+
+  /* Ornaments on the outer frame */
+  ornament: {
+    position: 'absolute',
+    fontSize: 16,
+    color: GOLD,
+    zIndex: 10,
+  },
+  ornamentTL: { top: -8, left: -4 },
+  ornamentTR: { top: -8, right: -4 },
+  ornamentBL: { bottom: -8, left: -4 },
+  ornamentBR: { bottom: -8, right: -4 },
+  ornamentMid: {
+    position: 'absolute',
+    fontSize: 12,
+    color: SAFFRON,
+    zIndex: 10,
+  },
+  ornamentMT: { top: -7, alignSelf: 'center', left: '48%' },
+  ornamentMB: { bottom: -7, alignSelf: 'center', left: '48%' },
+
+  /* ── PDF WRAPPER ── */
+  pdfWrapper: {
+    flex: 1,
+    padding: spacing.md,
+    paddingBottom: 4,
+  },
+  pdfFrameOuter: {
+    flex: 1,
+  },
   pdfContainer: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0D7C7',
-    backgroundColor: '#615f59',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   pdf: {
-    width: '100%',
-    
-  },
-  pdfControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingHorizontal: 20,
-  },
-  pdfBtn: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#275fb4',
-  },
-  disabledBtn: {
-    opacity: 0.4,
-  },
-  pdfPageText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#444',
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
 
-  /* ===== OTHER ===== */
-  nonTextContainer: {
-    flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0D7C7',
-    backgroundColor: '#FFFEFA',
-    alignItems: 'center',
+  /* Tap zones */
+  tapZoneLeft: {
+    position: 'absolute',
+    left: spacing.md,
+    top: spacing.md,
+    width: 64,
+    bottom: 140,
+    zIndex: 5,
+  },
+  tapZoneRight: {
+    position: 'absolute',
+    right: spacing.md,
+    top: spacing.md,
+    width: 64,
+    bottom: 140,
+    zIndex: 5,
+  },
+
+  /* Swipe flash overlay */
+  swipeFlashOverlay: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
+    bottom: 140,
+    borderRadius: radius.lg,
+    zIndex: 6,
+    pointerEvents: 'none',
+  },
+
+  /* ── LOADING / ERROR ── */
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,248,238,0.97)',
     justifyContent: 'center',
-    padding: 16,
+    alignItems: 'center',
+    zIndex: 10,
   },
-  nonTextTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  loaderOm: {
+    fontSize: 52,
+    color: SAFFRON,
+    textShadowColor: GOLD,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
-  nonTextDescription: {
-    fontSize: 14,
-    color: '#666',
+  loadingText: {
+    marginTop: spacing.sm,
+    fontSize: typography.body,
+    color: SAFFRON_DARK,
+    fontStyle: 'italic',
+    letterSpacing: 0.5,
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,248,238,0.97)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    padding: spacing.lg,
+  },
+  errorText: {
+    fontSize: typography.body,
+    color: '#DC2626',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
+  },
+  retryButton: {
+    backgroundColor: SAFFRON,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.round,
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: typography.button,
+  },
+
+  /* ── PAGE CONTROLS ── */
+  pageControlsContainer: {
+    paddingBottom: spacing.sm,
+    paddingTop: 6,
+  },
+  progressBarTrack: {
+    height: 4,
+    backgroundColor: GOLD_LIGHT,
+    borderRadius: 2,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 4,
+    backgroundColor: SAFFRON,
+    borderRadius: 2,
+  },
+  pageInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: HEADER_BG,
+    borderRadius: radius.round,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginHorizontal: spacing.md,
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    shadowColor: SAFFRON_DARK,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  navButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    minWidth: 80,
+  },
+  navButtonDisabled: {
+    opacity: 0.3,
+  },
+  navButtonText: {
+    fontSize: typography.body,
+    color: GOLD_LIGHT,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  navButtonTextDisabled: {
+    color: '#888',
+  },
+  pageIndicatorPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: SAFFRON,
+    borderRadius: radius.round,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: GOLD,
+  },
+  pageIndicatorOm: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginRight: 4,
+    fontWeight: 'bold',
+  },
+  pageNumberText: {
+    fontSize: typography.h4,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  pageSeparator: {
+    fontSize: typography.body,
+    color: GOLD_LIGHT,
+  },
+  pageTotalText: {
+    fontSize: typography.body,
+    color: '#FFFFFF',
+  },
+  swipeHint: {
+    textAlign: 'center',
+    fontSize: typography.small,
+    color: SAFFRON_DARK,
+    fontStyle: 'italic',
+    marginTop: 6,
+    letterSpacing: 0.3,
+  },
+
+  /* ── EXTERNAL VIEWER ── */
+  externalInner: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  externalOm: {
+    fontSize: 56,
+    color: SAFFRON,
+    marginBottom: spacing.md,
+    textShadowColor: GOLD,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
+  },
+  externalTitle: {
+    fontSize: typography.h4,
+    fontWeight: 'bold',
+    color: DEEP_PURPLE,
+    marginBottom: spacing.sm,
+  },
+  externalDescription: {
+    fontSize: typography.body,
+    color: '#7A5C3A',
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    lineHeight: typography.body * 1.5,
   },
   externalButton: {
-    backgroundColor: '#275fb4',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    backgroundColor: SAFFRON,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.round,
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    shadowColor: SAFFRON_DARK,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   externalButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: 'bold',
+    fontSize: typography.button,
+    letterSpacing: 0.5,
+  },
+
+  /* ── TEXT READER ── */
+  textWrapper: {
+    flex: 1,
+    padding: spacing.md,
+    paddingBottom: 4,
+  },
+  contentScrollInner: {
+    padding: spacing.lg,
+  },
+  contentText: {
+    fontSize: typography.body,
+    lineHeight: typography.body * 1.8,
+    color: MAROON,
+    textAlign: 'justify',
   },
 });
 

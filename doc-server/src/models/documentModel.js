@@ -210,6 +210,12 @@ async function updateDocument(id, data) {
   return await Document.findByIdAndUpdate(id, data, { new: true });
 }
 
+// Get document by ID
+async function getDocumentById(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) return null;
+  return await Document.findById(id).populate('category');
+}
+
 /* ================= READING TRACKING ================= */
 
 async function incrementReadingCount(docId) {
@@ -230,6 +236,7 @@ module.exports = {
   getAllDocuments,
   getDocumentsByCategory,
   getPaginatedDocuments,
+  getDocumentById,
   createDocument,
   deleteDocument,
   updateDocument,

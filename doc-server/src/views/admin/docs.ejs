@@ -278,10 +278,11 @@
               </div>
 
               <div class="doc-actions">
+                <a href="/admin/docs/edit/<%= doc._id %>" class="btn-action btn-view">✏️ Edit</a>
                 <a href="<%= doc.url %>" target="_blank" class="btn-action btn-view">View Asset</a>
                 
                 <form method="post" action="/admin/docs/delete" style="flex: 0 0 45px;">
-                  <input type="hidden" name="id" value="<%= doc.id %>" />
+                  <input type="hidden" name="id" value="<%= doc._id %>" />
                   <button type="submit" class="btn-action btn-delete-icon" onclick="return confirm('Delete permanently?')">
                     🗑️
                   </button>

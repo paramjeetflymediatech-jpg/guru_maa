@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Text Content - Guru Maa Admin</title>
+  <title>Edit Document - Guru Maa Admin</title>
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
@@ -51,6 +51,7 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: var(--primary-soft); color: var(--primary); }
     .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
+    .btn-danger { background: var(--danger); color: white; }
 
     .form-card {
       background: white; border-radius: var(--radius); padding: 32px;
@@ -90,6 +91,18 @@
       margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;
     }
 
+    .doc-type-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .badge-pdf { background: #fee2e2; color: #dc2626; }
+    .badge-text { background: #dbeafe; color: #2563eb; }
+    .badge-html { background: #dcfce7; color: #16a34a; }
+
     .tip {
       background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
       padding: 12px 16px; font-size: 13px; color: #166534; margin-bottom: 20px;
@@ -118,33 +131,47 @@
     <main class="main-content">
       <header class="page-header">
         <div class="header-info">
-          <h1>Add Text Content</h1>
-          <p>Create new text-based reading content for your app</p>
+          <h1>Edit Document</h1>
+          <p>Update document details and content</p>
         </div>
         <a href="/admin/docs" class="btn btn-secondary">← Back to Documents</a>
       </header>
 
       <div class="form-card">
+        <% if (doc.textContent) { %>
+          <span class="doc-type-badge badge-text">📝 Text Content</span>
+        <% } else if (doc.htmlContent) { %>
+          <span class="doc-type-badge badge-html">🌐 HTML Content</span>
+        <% } else { %>
+          <span class="doc-type-badge badge-pdf">📄 PDF Document</span>
+        <% } %>
+
         <div class="tip">
-          💡 <strong>Tip:</strong> Use this to add chapters, stories, mantras, or any text-based content. 
-          You can format your content with paragraphs and it will be displayed beautifully in the app.
+          💡 <strong>Tip:</strong> <% if (doc.textContent) { %>
+            You can edit the text content below. Changes will be reflected immediately in the app.
+          <% } else { %>
+            Update the document metadata. The file itself cannot be changed - upload a new document to replace it.
+          <% } %>
         </div>
 
-        <form method="post" action="/admin/docs/create/text">
+        <form method="post" action="/admin/docs/edit/<%= doc._id %>">
           <div class="form-row">
             <div class="form-group">
               <label>Title *</label>
-              <input type="text" name="title" required placeholder="e.g., Chapter 1: The Beginning">
+              <input type="text" name="title" required placeholder="e.g., Chapter 1: The Beginning"
+                value="<%= doc.title || '' %>">
             </div>
             <div class="form-group">
               <label>Subtitle</label>
-              <input type="text" name="subtitle" placeholder="e.g., Arjuna's Dilemma">
+              <input type="text" name="subtitle" placeholder="e.g., Arjuna's Dilemma"
+                value="<%= doc.subtitle || '' %>">
             </div>
           </div>
 
           <div class="form-group">
             <label>Description</label>
-            <input type="text" name="description" placeholder="Brief description for the library card">
+            <input type="text" name="description" placeholder="Brief description for the library card"
+              value="<%= doc.description || '' %>">
           </div>
 
           <div class="form-row">
@@ -154,43 +181,62 @@
                 <option value="">-- No Category --</option>
                 <% if (categories && categories.length > 0) { %>
                   <% categories.forEach(function(cat) { %>
-                    <option value="<%= cat._id %>"><%= cat.icon %> <%= cat.name %></option>
+                    <option value="<%= cat._id %>" <%= doc.category && doc.category.toString() === cat._id.toString() ? 'selected' : '' %>>
+                      <%= cat.icon %> <%= cat.name %>
+                    </option>
                   <% }) %>
                 <% } %>
               </select>
             </div>
             <div class="form-group">
               <label>Author</label>
-              <input type="text" name="author" placeholder="e.g., Vyasa">
+              <input type="text" name="author" placeholder="e.g., Vyasa"
+                value="<%= doc.author || '' %>">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label>Total Pages / Chapters</label>
-              <input type="number" name="totalPages" value="1" min="1">
+              <input type="number" name="totalPages" value="<%= doc.totalPages || 1 %>" min="1">
             </div>
             <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
               <div class="checkbox-group">
-                <input type="checkbox" name="isPublished" id="isPublished" checked>
+                <input type="checkbox" name="isPublished" id="isPublished" <%= doc.isPublished ? 'checked' : '' %>>
                 <label for="isPublished">Publish immediately</label>
               </div>
               <div class="checkbox-group" style="margin-top: 10px;">
-                <input type="checkbox" name="isFeatured" id="isFeatured">
+                <input type="checkbox" name="isFeatured" id="isFeatured" <%= doc.isFeatured ? 'checked' : '' %>>
                 <label for="isFeatured">Mark as featured</label>
               </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label>Content *</label>
-            <div id="editor-container" style="background: white;"></div>
-            <input type="hidden" name="textContent" id="textContent">
-          </div>
+          <% if (doc.textContent) { %>
+            <div class="form-group">
+              <label>Content *</label>
+              <div id="editor-container" style="background: white;" data-initial-content="<%- (doc.textContent || '').replace(/"/g, '&quot;') %>"></div>
+              <input type="hidden" name="textContent" id="textContent">
+            </div>
+          <% } else if (doc.htmlContent) { %>
+            <div class="form-group">
+              <label>HTML Content *</label>
+              <textarea name="htmlContent" required placeholder="Enter HTML content here..."><%= doc.htmlContent || '' %></textarea>
+            </div>
+          <% } else { %>
+            <div class="form-group">
+              <label>Current File</label>
+              <input type="text" value="<%= doc.filename || 'No file' %>" readonly 
+                style="background: #f1f5f9; cursor: not-allowed;">
+              <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">
+                To replace the file, delete this document and upload a new one.
+              </p>
+            </div>
+          <% } %>
 
           <div class="form-actions">
             <a href="/admin/docs" class="btn btn-outline">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create Content</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
           </div>
         </form>
       </div>
@@ -218,6 +264,15 @@
         ]
       }
     });
+    
+    // Set initial content from data attribute
+    var editorEl = document.getElementById('editor-container');
+    var initialContent = editorEl ? editorEl.dataset.initialContent : '';
+    if (initialContent) {
+      try {
+        quill.root.innerHTML = initialContent;
+      } catch(e) { console.error('Error loading content:', e); }
+    }
     
     // Handle form submission
     document.querySelector('form').addEventListener('submit', function() {

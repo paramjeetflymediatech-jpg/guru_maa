@@ -234,7 +234,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -245,21 +244,35 @@ import {
 import Logo from './logoscreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginUser } from '../api/auth.api';
-import colors from '../constants/theme';
+import colors, { spacing, typography, radius } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
 
 const { height } = Dimensions.get('window');
 const isLandscape = height < 500;
 
 function LoginScreen({ navigation }) {
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLanguageChange = () => {
+    Alert.alert(t('profile.changeLanguage'), '', [
+      { text: 'English', onPress: () => i18n.changeLanguage('en') },
+      { text: 'हिन्दी', onPress: () => i18n.changeLanguage('hi') },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
 
   const onLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Validation Error', 'Email and password are required');
+      setError(t('register.fieldsRequired'));
       return;
     }
+
+    setError('');
 
     try {
       setLoading(true);
@@ -271,10 +284,7 @@ function LoginScreen({ navigation }) {
       const user = response?.data?.user;
 
       if (!user?.isVerified) {
-        Alert.alert(
-          'Login Failed',
-          response?.data?.message || 'OTP verification required'
-        );
+        // Navigate to OTP
         return navigation.navigate('EnterOtp', {
           email: email.trim(),
           userId: user.id,
@@ -292,11 +302,9 @@ function LoginScreen({ navigation }) {
         index: 0,
         routes: [{ name: 'Main' }],
       });
-    } catch (error) {
-      Alert.alert(
-        'Login Failed',
-        error?.response?.data?.message || 'Invalid email or password'
-      );
+    } catch (err) {
+      setError(err?.response?.data?.message || t('common.error'));
+      console.log('Login error:', err?.message);
     } finally {
       setLoading(false);
     }
@@ -313,37 +321,56 @@ function LoginScreen({ navigation }) {
       >
         {/* HEADER */}
         <View style={[styles.header, isLandscape && styles.headerLandscape]}>
+          <TouchableOpacity 
+            style={styles.langSelector} 
+            onPress={handleLanguageChange}
+          >
+            <Text style={styles.langText}>🌐 {i18n.language === 'en' ? 'English' : 'हिन्दी'}</Text>
+          </TouchableOpacity>
           <Logo size={isLandscape ? 72 : 96} />
           <Text style={styles.appName}>Gurumaa</Text>
           {!isLandscape && (
             <Text style={styles.appTagline}>
-              Secure spiritual library at your fingertips
+              {t('register.tagline')}
             </Text>
           )}
         </View>
 
         {/* FORM */}
         <View style={styles.formWrapper}>
-          <Text style={styles.title}>Login</Text>
+          <Text style={styles.title}>{t('common.login')}</Text>
 
           <TextInput
-            style={styles.input}
-            placeholder="Email"
+            style={[styles.input, error && styles.inputError]}
+            placeholder={t('register.email')}
             placeholderTextColor="#9ca3af"
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setError('');
+            }}
           />
 
           <TextInput
-            style={styles.input}
-            placeholder="Password"
+            style={[styles.input, error && styles.inputError]}
+            placeholder={t('register.password')}
             placeholderTextColor="#9ca3af"
             secureTextEntry
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError('');
+            }}
           />
+
+          {/* Error Message */}
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
           <TouchableOpacity
             style={[styles.primaryButton, loading && styles.disabledButton]}
@@ -353,7 +380,7 @@ function LoginScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.primaryButtonText}>Login</Text>
+              <Text style={styles.primaryButtonText}>{t('common.login')}</Text>
             )}
           </TouchableOpacity>
 
@@ -362,7 +389,7 @@ function LoginScreen({ navigation }) {
             disabled={loading}
           >
             <Text style={styles.linkText}>
-              Don't have an account? Register
+              {t('register.dontHaveAccount')}
             </Text>
           </TouchableOpacity>
 
@@ -371,7 +398,7 @@ function LoginScreen({ navigation }) {
             disabled={loading}
           >
             <Text style={styles.secondaryLinkText}>
-              Forgot your password?
+              {t('register.forgotPassword')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -386,73 +413,92 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     backgroundColor: colors.background,
-    paddingBottom: 40,
+    paddingBottom: spacing.xl,
   },
 
   header: {
     paddingTop: 80,
-    paddingBottom: 32,
+    paddingBottom: spacing.lg,
     alignItems: 'center',
   },
 
   headerLandscape: {
-    paddingTop: 32,
-    paddingBottom: 16,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
 
   appName: {
-    marginTop: 12,
-    fontSize: 28,
+    marginTop: spacing.sm,
+    fontSize: typography.h2,
     fontWeight: 'bold',
     color: colors.primary,
   },
 
   appTagline: {
-    marginTop: 8,
-    fontSize: 15,
+    marginTop: spacing.sm,
+    fontSize: typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 32,
-    lineHeight: 22,
+    paddingHorizontal: spacing.lg,
+    lineHeight: typography.body * 1.5,
   },
 
   formWrapper: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: spacing.lg,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: typography.h2,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: spacing.md,
     color: colors.textPrimary,
   },
 
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 16,
-    fontSize: 16,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.sm,
+    fontSize: typography.input,
     color: colors.textPrimary,
     backgroundColor: colors.backgroundSecondary,
+    minHeight: 56,
+  },
+
+  inputError: {
+    borderColor: colors.error || '#DC2626',
+  },
+
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+  },
+
+  errorText: {
+    color: colors.error || '#DC2626',
+    fontSize: typography.bodySmall,
+    textAlign: 'center',
   },
 
   primaryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 16,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
     elevation: 2,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    minHeight: 56, // Larger touch target
   },
 
   disabledButton: {
@@ -460,24 +506,42 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: '#ffffff',
+    color: colors.textOnPrimary,
     fontWeight: 'bold',
-    fontSize: 17,
+    fontSize: typography.button,
   },
 
   linkText: {
     color: colors.primary,
     textAlign: 'center',
-    marginTop: 12,
-    fontSize: 15,
-    fontWeight: '500',
+    marginTop: spacing.md,
+    fontSize: typography.body,
+    fontWeight: '600',
+    padding: spacing.sm, // Larger touch target
   },
 
   secondaryLinkText: {
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 10,
-    fontSize: 14,
+    marginTop: spacing.sm,
+    fontSize: typography.bodySmall,
+  },
+  langSelector: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.lg,
+    backgroundColor: colors.backgroundSecondary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 10,
+  },
+  langText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
 
