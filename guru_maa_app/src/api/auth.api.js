@@ -39,3 +39,8 @@ export const resetPassword = (data) => {
 export const profileUpdate = (id, data) => {
   return API.put(`/auth/profile/${id}`, data);
 };
+
+/* ================= DEVICE UPDATE ================= */
+export const updateDeviceToken = (data) => {
+  return API.post('/auth/update-device', data);
+};

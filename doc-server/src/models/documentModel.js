@@ -148,6 +148,26 @@ async function updateCategory(id, data) {
   return await Category.findByIdAndUpdate(id, data, { new: true });
 }
 
+async function getPaginatedCategories(page = 1, limit = 9) {
+  const skip = (page - 1) * limit;
+  const categories = await Category.find()
+    .sort({ order: 1, name: 1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Category.countDocuments();
+
+  return {
+    categories,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalDocs: total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
 // Create text document
 async function createTextDocument(docData) {
   const doc = new Document({
@@ -246,6 +266,7 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
+  getPaginatedCategories,
   createTextDocument,
   createHtmlDocument,
   searchDocuments,

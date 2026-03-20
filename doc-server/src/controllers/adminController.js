@@ -17,12 +17,35 @@ const {
   createCategory,
   updateCategory,
   deleteCategory,
+  getPaginatedCategories,
   updateDocument,
   createTextDocument,
   createHtmlDocument,
   searchDocuments,
 } = require("../models/documentModel");
 const User = require("../models/userModel");
+const { sendPush } = require("../utils/notification");
+
+/**
+ * Helper to send push notifications to all users with registered devices
+ */
+async function notifyAllUsers(title, body) {
+  try {
+    const users = await User.find({ "devices.0": { $exists: true } });
+    const allTokens = [];
+    users.forEach(user => {
+      user.devices.forEach(device => {
+        if (device.pushToken) allTokens.push(device.pushToken);
+      });
+    });
+    console.log(allTokens, 'dddd')
+    if (allTokens.length > 0) {
+      await sendPush(allTokens, { title, body });
+    }
+  } catch (error) {
+    console.error("Error in notifyAllUsers:", error);
+  }
+}
 
 function showLogin(req, res) {
   try {
@@ -143,7 +166,7 @@ async function showDashboard(req, res) {
 async function showDocs(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 9;
 
     // Using getPaginatedDocuments instead of getAllDocuments
     const result = await getPaginatedDocuments(page, limit);
@@ -212,14 +235,14 @@ async function handleUpload(req, res) {
       });
 
       const pdfPath = path.join(outputDir, pdfFilename);
-      
+
       // Check if PDF was actually created
       if (conversionSuccess && fs.existsSync(pdfPath)) {
         finalFilename = pdfFilename;
         const stats = fs.statSync(pdfPath);
         finalSize = stats.size;
         finalMime = "application/pdf";
-        
+
         // Delete the original DOC/DOCX file after successful conversion
         if (fs.existsSync(uploadedPath)) {
           try {
@@ -252,7 +275,7 @@ async function handleUpload(req, res) {
       originalName: req.file.originalname,
       mimeType: finalMime,
       size: finalSize,
-    }); 
+    });
 
     req.session.flash = {
       type: "success",
@@ -260,6 +283,13 @@ async function handleUpload(req, res) {
         ? "Document uploaded and converted to PDF successfully."
         : "Document uploaded successfully.",
     };
+    console.log('--------------------------------bitifsidsd')
+    // Trigger push notification to all users
+    try {
+      await notifyAllUsers("New Document Uploaded", `A new document "${path.parse(req.file.originalname).name}" is now available in the library.`);
+    } catch (err) {
+      console.error(err);
+    }
   } catch (err) {
     console.error(err);
     req.session.flash = {
@@ -300,9 +330,16 @@ async function handleDelete(req, res) {
 // Show categories management page
 async function showCategories(req, res) {
   try {
-    const categories = await getAllCategories();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+
+    const result = await getPaginatedCategories(page, limit);
+    const categories = result.categories;
+    const pagination = result.pagination;
+
     res.render("admin/categories", {
       categories,
+      pagination,
       currentPage: "categories",
     });
   } catch (err) {
@@ -316,25 +353,25 @@ async function showCategories(req, res) {
 async function handleCategoryCreate(req, res) {
   try {
     const { name, description, icon, order } = req.body;
-    
+
     // Validate required fields
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       req.session.flash = { type: "error", message: "Category name must be at least 2 characters." };
       return res.redirect("/admin/categories");
     }
-    
+
     // Sanitize inputs - limit length and trim
     const sanitizedName = name.trim().substring(0, 100);
     const sanitizedDescription = description ? description.trim().substring(0, 500) : '';
     const sanitizedIcon = icon ? icon.trim().substring(0, 10) : "📚";
-    
+
     await createCategory({
       name: sanitizedName,
       description: sanitizedDescription,
       icon: sanitizedIcon,
       order: parseInt(order) || 0,
     });
-    
+
     req.session.flash = {
       type: "success",
       message: "Category created successfully.",
@@ -350,25 +387,25 @@ async function handleCategoryCreate(req, res) {
 async function handleCategoryUpdate(req, res) {
   try {
     const { id, name, description, icon, order } = req.body;
-    
+
     // Validate required fields
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       req.session.flash = { type: "error", message: "Category name must be at least 2 characters." };
       return res.redirect("/admin/categories");
     }
-    
+
     // Sanitize inputs - limit length and trim
     const sanitizedName = name.trim().substring(0, 100);
     const sanitizedDescription = description ? description.trim().substring(0, 500) : '';
     const sanitizedIcon = icon ? icon.trim().substring(0, 10) : "📚";
-    
+
     await updateCategory(id, {
       name: sanitizedName,
       description: sanitizedDescription,
       icon: sanitizedIcon,
       order: parseInt(order) || 0,
     });
-    
+
     req.session.flash = {
       type: "success",
       message: "Category updated successfully.",
@@ -415,26 +452,26 @@ async function showCreateText(req, res) {
 async function handleTextCreate(req, res) {
   try {
     const { title, subtitle, description, textContent, category, author, totalPages, isPublished, isFeatured } = req.body;
-    
+
     // Validate required fields
     if (!title || typeof title !== 'string' || title.trim().length < 2) {
       req.session.flash = { type: "error", message: "Title is required and must be at least 2 characters." };
       return res.redirect("/admin/docs/create/text");
     }
-    
+
     // Validate text content for text documents
     if (!textContent || typeof textContent !== 'string' || textContent.trim().length < 10) {
       req.session.flash = { type: "error", message: "Text content is required and must be at least 10 characters." };
       return res.redirect("/admin/docs/create/text");
     }
-    
+
     // Sanitize and limit inputs
     const sanitizedTitle = title.trim().substring(0, 200);
     const sanitizedSubtitle = subtitle ? subtitle.trim().substring(0, 200) : '';
     const sanitizedDescription = description ? description.trim().substring(0, 1000) : '';
     const sanitizedTextContent = textContent.trim().substring(0, 50000); // Limit to 50k chars
     const sanitizedAuthor = author ? author.trim().substring(0, 100) : '';
-    
+
     await createTextDocument({
       title: sanitizedTitle,
       subtitle: sanitizedSubtitle,
@@ -446,11 +483,15 @@ async function handleTextCreate(req, res) {
       isPublished: isPublished === 'on',
       isFeatured: isFeatured === 'on',
     });
-    
+
     req.session.flash = {
       type: "success",
       message: "Text content created successfully.",
     };
+
+    // Trigger push notification to all users
+    notifyAllUsers("New Content Available", `A new text document "${sanitizedTitle}" has been added.`);
+
   } catch (err) {
     console.error("Create text error:", err);
     req.session.flash = { type: "error", message: "Error creating text content." };
@@ -464,12 +505,12 @@ async function showEditDoc(req, res) {
     const { id } = req.params;
     const doc = await getDocumentById(id);
     const categories = await getAllCategories();
-    
+
     if (!doc) {
       req.session.flash = { type: "error", message: "Document not found." };
       return res.redirect("/admin/docs");
     }
-    
+
     res.render("admin/doc-edit", {
       doc,
       categories,
@@ -487,7 +528,7 @@ async function handleDocUpdate(req, res) {
   try {
     const { id } = req.params;
     const { title, subtitle, description, category, author, totalPages, isPublished, isFeatured, textContent, htmlContent } = req.body;
-    
+
     // Build update object with basic fields
     const updateData = {
       title,
@@ -499,19 +540,19 @@ async function handleDocUpdate(req, res) {
       isPublished: isPublished === 'on',
       isFeatured: isFeatured === 'on',
     };
-    
+
     // Add text content if provided (for text documents)
     if (textContent !== undefined) {
       updateData.textContent = textContent.trim().substring(0, 50000);
     }
-    
+
     // Add HTML content if provided (for HTML documents)
     if (htmlContent !== undefined) {
       updateData.htmlContent = htmlContent.trim().substring(0, 100000);
     }
-    
+
     await updateDocument(id, updateData);
-    
+
     req.session.flash = {
       type: "success",
       message: "Document updated successfully.",
@@ -529,10 +570,10 @@ async function handleSearch(req, res) {
     const { query } = req.body;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    
+
     let docs = [];
     let pagination = { page, limit, totalDocs: 0, totalPages: 0 };
-    
+
     if (query && query.trim()) {
       docs = await searchDocuments(query.trim());
       // Apply pagination manually for search results
@@ -545,9 +586,9 @@ async function handleSearch(req, res) {
       docs = result.docs;
       pagination = result.pagination;
     }
-    
+
     const categories = await getAllCategories();
-    
+
     res.render("admin/docs", {
       docs,
       pagination,

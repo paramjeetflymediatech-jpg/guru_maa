@@ -11,6 +11,7 @@ import {
   Easing,
 } from 'react-native';
 import colors from '../constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,18 +45,34 @@ function SplashScreen({ navigation }) {
       }),
     ]).start();
 
-    // Second phase: Show button after logo animation
-    const buttonTimer = setTimeout(() => {
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic),
-      }).start();
+    const checkTokenTimer = setTimeout(async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          navigation.replace('Main');
+        } else {
+          // Show button after logo animation
+          Animated.timing(buttonAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+            easing: Easing.out(Easing.cubic),
+          }).start();
+        }
+      } catch (err) {
+        console.error('Error fetching token on splash:', err);
+        // Fallback: show button
+        Animated.timing(buttonAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.cubic),
+        }).start();
+      }
     }, 1200);
 
-    return () => clearTimeout(buttonTimer);
-  }, [fadeAnim, scaleAnim, slideAnim, buttonAnim]);
+    return () => clearTimeout(checkTokenTimer);
+  }, [fadeAnim, scaleAnim, slideAnim, buttonAnim, navigation]);
 
   const handleGetStarted = () => {
     // Button press animation

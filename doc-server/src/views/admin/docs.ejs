@@ -75,9 +75,20 @@
       border-radius: var(--radius);
       padding: 40px;
       text-align: center;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       margin-bottom: 40px;
       position: relative;
+      display: none; /* Hidden by default */
+    }
+
+    .upload-zone.active {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .upload-zone:hover {
@@ -195,6 +206,92 @@
     .btn-delete-icon { background: #fee2e2; color: var(--danger); border: none; cursor: pointer; }
     .btn-delete-icon:hover { background: var(--danger); color: white; }
 
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    /* Search Section */
+    .search-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+      border: 1px solid #f1f5f9;
+    }
+
+    .search-form {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-size: 18px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 15px;
+      color: #1e293b;
+      transition: all 0.2s ease;
+      background: #f8fafc;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
     /* Empty State */
     .empty-container {
       grid-column: 1 / -1;
@@ -229,25 +326,27 @@
         </div>
         <div style="display: flex; gap: 10px;">
           <a href="/admin/docs/create/text" class="btn btn-secondary" style="background: #f0fdf4; color: #16a34a;">+ Add Text Content</a>
-          <a href="/admin/docs" class="btn btn-primary">Upload PDF</a>
+          <button type="button" class="btn btn-primary" id="btn-show-upload">Upload PDF</button>
         </div>
       </header>
 
       <!-- Search Section -->
-      <section style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <form method="post" action="/admin/docs/search" style="display: flex; gap: 10px;">
-          <input type="text" name="query" placeholder="Search documents by title, description, or content..." 
-            style="flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
-            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
-          <button type="submit" class="btn btn-primary">Search</button>
-          <% if (typeof searchQuery !== 'undefined' && searchQuery) { %>
-            <a href="/admin/docs" class="btn btn-secondary">Clear</a>
-          <% } %>
-        </form>
+      <section class="search-section">
+        <div class="search-form">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="Search documents by title, folder, or type..." 
+              value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="document.querySelector('.search-input').value=''; document.querySelector('.search-input').dispatchEvent(new Event('input'))">Clear</button>
+        </div>
       </section>
 
-      <section class="upload-zone">
+      <section class="upload-zone" id="upload-zone">
         <form method="post" action="/admin/docs/upload" enctype="multipart/form-data" class="upload-form">
+          <button type="button" class="btn-close-upload" onclick="document.getElementById('upload-zone').classList.remove('active')" 
+            style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light);">✕</button>
+          
           <div class="doc-icon" style="margin: 0 auto 15px auto;">📁</div>
           <h3>Drop your files here</h3>
           <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px;">Support for PDF, DOCX, and Images</p>
@@ -256,6 +355,7 @@
             <button type="button" class="btn-upload-trigger">Select File</button>
             <input type="file" name="file" required onchange="this.form.submit()" />
           </div>
+          <button type="button" class="btn" style="margin-top: 10px; font-size: 13px;" onclick="document.getElementById('upload-zone').classList.remove('active')">Cancel</button>
         </form>
       </section>
 
@@ -297,9 +397,15 @@
             <p style="color: var(--text-light);">Start by uploading a document above.</p>
           </div>
         <% } %>
+        
+        <div class="no-results-container" style="display: none; grid-column: 1 / -1; text-align: center; padding: 60px; background: white; border-radius: var(--radius);">
+          <div style="font-size: 50px; margin-bottom: 20px;">🔍</div>
+          <h3>No results found</h3>
+          <p style="color: var(--text-light);">We couldn't find any documents matching your search.</p>
+        </div>
       </section>
 
-      <div style="margin-top: 40px;">
+      <div class="pagination-wrapper" style="margin-top: 40px;">
         <%- include('./layouts/pagination') %>
       </div>
     </main>
@@ -308,6 +414,73 @@
   <%- include('./layouts/flash-toast') %>
 
   <script>
+    // Live Client-Side Search
+    const searchInput = document.querySelector('.search-input');
+    const docCards = document.querySelectorAll('.doc-card');
+    const noResultsContainer = document.querySelector('.no-results-container');
+    const paginationWrapper = document.querySelector('.pagination-wrapper');
+
+    if (searchInput) {
+      const originalCount = document.getElementById('pagination-item-count')?.innerText;
+      const originalCurrentPage = document.getElementById('pagination-current-page')?.innerText;
+      const originalTotalPages = document.getElementById('pagination-total-pages')?.innerText;
+
+      searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        docCards.forEach(card => {
+          const textContent = card.innerText.toLowerCase();
+          
+          if (query === '' || textContent.includes(query)) {
+            card.style.display = 'flex';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Update pagination info
+        const countSpan = document.getElementById('pagination-item-count');
+        const currPageSpan = document.getElementById('pagination-current-page');
+        const totalPagesSpan = document.getElementById('pagination-total-pages');
+        const paginationLinks = document.getElementById('pagination-links');
+
+        if (countSpan) countSpan.innerText = query === '' ? originalCount : visibleCount;
+        
+        if (query !== '') {
+          if (currPageSpan) currPageSpan.innerText = '1';
+          if (totalPagesSpan) totalPagesSpan.innerText = '1';
+          if (paginationLinks) paginationLinks.style.display = 'none';
+        } else {
+          if (currPageSpan) currPageSpan.innerText = originalCurrentPage;
+          if (totalPagesSpan) totalPagesSpan.innerText = originalTotalPages;
+          if (paginationLinks) paginationLinks.style.display = 'flex';
+        }
+
+        // Toggle No Results State
+        if (noResultsContainer && docCards.length > 0) {
+          if (visibleCount === 0) {
+            noResultsContainer.style.display = 'block';
+          } else {
+            noResultsContainer.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Toggle Upload Zone
+    const btnShowUpload = document.getElementById('btn-show-upload');
+    const uploadZone = document.getElementById('upload-zone');
+    if (btnShowUpload && uploadZone) {
+      btnShowUpload.addEventListener('click', () => {
+        uploadZone.classList.toggle('active');
+        if (uploadZone.classList.contains('active')) {
+          uploadZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
+
     // Smooth file name feedback (Optional)
     const fileInput = document.querySelector('input[type="file"]');
     fileInput.addEventListener('change', function(e) {

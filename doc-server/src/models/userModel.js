@@ -34,6 +34,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  devices: [
+    {
+      deviceId: { type: String, required: true },
+      deviceType: { type: String },
+      pushToken: { type: String },
+      lastActive: { type: Date, default: Date.now },
+    },
+  ],
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 });

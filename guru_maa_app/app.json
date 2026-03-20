@@ -2,6 +2,19 @@
   "name": "gurumaa_app",
   "displayName": "gurumaa_app",
   "expo": {
-    "orientation": "default"
+    "orientation": "default",
+    "plugins": [
+      [
+        "@react-native-firebase/app",
+        {
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
+        }
+      ],
+      [
+        "@react-native-firebase/messaging"
+      ]
+    ]
   }
 }

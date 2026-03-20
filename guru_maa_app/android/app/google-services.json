@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "713616619594",
+    "project_id": "gurumaa-41b14",
+    "storage_bucket": "gurumaa-41b14.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:713616619594:android:073904a15b6552708f4eb3",
+        "android_client_info": {
+          "package_name": "com.gurumaa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbBZFxJ-2rYidAdYX7QISEuoX2aGs6cHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

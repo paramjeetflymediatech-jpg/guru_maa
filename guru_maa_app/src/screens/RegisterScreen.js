@@ -223,6 +223,10 @@ import {
 import Logo from './logoscreen';
 import colors, { spacing, typography, radius } from '../constants/theme';
 import { useTranslation } from 'react-i18next';
+import { getDeviceId, getDeviceType } from '../utils/device';
+import { getFcmToken } from '../utils/notifications';
+import { registerUser } from '../api/auth.api';
+
 
 
 const { height } = Dimensions.get('window');
@@ -256,11 +260,17 @@ function RegisterScreen({ navigation }) {
 
     try {
       setLoading(true);
+      const deviceId = await getDeviceId();
+      const deviceType = getDeviceType();
+      const pushToken = await getFcmToken();
 
       const response = await registerUser({
         name: name.trim(),
         email: email.trim(),
         password,
+        deviceId,
+        deviceType,
+        pushToken,
       });
 
       navigation.navigate('EnterOtp', {

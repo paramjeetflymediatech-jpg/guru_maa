@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 
 import colors from './src/constants/theme';
+import { notificationListener, requestUserPermission, syncToken } from './src/utils/notifications';
 
 // Error Boundary for catching rendering errors
 class ErrorBoundary extends React.Component {
@@ -253,6 +254,16 @@ function RootNavigator() {
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(() => {
+    // Initialize push notifications
+    const initNotifications = async () => {
+      await requestUserPermission();
+      notificationListener();
+      await syncToken(); // Automatically sync token if already logged in
+    };
+    initNotifications();
+  }, []);
 
   // Debug: Log theme initialization
   console.log('[App] Initializing navigation theme, isDarkMode:', isDarkMode);

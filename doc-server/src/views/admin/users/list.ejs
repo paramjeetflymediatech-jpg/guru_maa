@@ -234,6 +234,61 @@
             color: var(--danger);
         }
 
+        /* Search Section */
+        .search-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid #f1f5f9;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            font-size: 18px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .no-results-container {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: var(--radius);
+        }
+
         /* Mobile / Responsive View */
         @media (max-width: 768px) {
             .table-card {
@@ -356,6 +411,17 @@
                     </a>
                 </div>
 
+                <!-- Search Section -->
+                <section class="search-section">
+                    <div class="search-form">
+                        <div class="search-input-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Search users by name or email...">
+                        </div>
+                        <button type="button" class="btn-icon" style="background: var(--bg-body); padding: 10px 20px; font-weight: 600;" onclick="document.querySelector('.search-input').value=''; document.querySelector('.search-input').dispatchEvent(new Event('input'))">Clear</button>
+                    </div>
+                </section>
+
                 <!-- User List -->
                 <div class="table-card">
                     <% if (users && users.length> 0) { %>
@@ -436,12 +502,76 @@
                                 <!-- Pagination Partial -->
                                 <%- include('../layouts/pagination') %>
                 </div>
+
+                <div class="no-results-container" id="no-results" style="display: none; margin-top: 20px;">
+                    <div style="font-size: 50px; margin-bottom: 20px;">🔍</div>
+                    <h3>No users found</h3>
+                    <p style="color: var(--text-muted);">We couldn't find any users matching your search.</p>
+                </div>
             </div>
     </div>
 
     <!-- Flash & Toast Partial -->
     <%- include('../layouts/flash-toast') %>
 
+    <script>
+        // Live Client-Side Search
+        const searchInput = document.querySelector('.search-input');
+        const userRows = document.querySelectorAll('tbody tr');
+        const noResultsContainer = document.getElementById('no-results');
+        const tableCard = document.querySelector('.table-card');
+
+        if (searchInput) {
+            const originalCount = document.getElementById('pagination-item-count')?.innerText;
+            const originalCurrentPage = document.getElementById('pagination-current-page')?.innerText;
+            const originalTotalPages = document.getElementById('pagination-total-pages')?.innerText;
+
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                let visibleCount = 0;
+                
+                userRows.forEach(row => {
+                    const textContent = row.innerText.toLowerCase();
+                    
+                    if (query === '' || textContent.includes(query)) {
+                        row.style.display = 'table-row';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Update pagination info
+                const countSpan = document.getElementById('pagination-item-count');
+                const currPageSpan = document.getElementById('pagination-current-page');
+                const totalPagesSpan = document.getElementById('pagination-total-pages');
+                const paginationLinks = document.getElementById('pagination-links');
+
+                if (countSpan) countSpan.innerText = query === '' ? originalCount : visibleCount;
+                
+                if (query !== '') {
+                    if (currPageSpan) currPageSpan.innerText = '1';
+                    if (totalPagesSpan) totalPagesSpan.innerText = '1';
+                    if (paginationLinks) paginationLinks.style.display = 'none';
+                } else {
+                    if (currPageSpan) currPageSpan.innerText = originalCurrentPage;
+                    if (totalPagesSpan) totalPagesSpan.innerText = originalTotalPages;
+                    if (paginationLinks) paginationLinks.style.display = 'flex';
+                }
+
+                // Toggle No Results & Table State
+                if (userRows.length > 0) {
+                    if (visibleCount === 0) {
+                        noResultsContainer.style.display = 'block';
+                        tableCard.style.display = 'none';
+                    } else {
+                        noResultsContainer.style.display = 'none';
+                        tableCard.style.display = 'block';
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

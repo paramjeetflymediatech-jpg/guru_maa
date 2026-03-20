@@ -7,6 +7,7 @@ const {
   resendOtp,
   forgotPassword,
   resetPassword,
+  updateDevice,
 } = require('../controllers/apiAuthController');
 
 const { listDocs, listCategories, trackReading } = require('../controllers/apiDocController');
@@ -21,6 +22,7 @@ router.post('/auth/verify-otp', verifyOtp);
 router.post('/auth/resend-otp', resendOtp);
 router.post('/auth/forgot-password', forgotPassword);
 router.post('/auth/reset-password', resetPassword);
+router.post('/auth/update-device', apiAuthMiddleware, updateDevice);
 
 /* ================= DOCUMENTS ================= */
 router.get('/docs', apiAuthMiddleware, listDocs);

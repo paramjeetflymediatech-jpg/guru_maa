@@ -247,6 +247,8 @@ import { loginUser } from '../api/auth.api';
 import colors, { spacing, typography, radius } from '../constants/theme';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
+import { getDeviceId, getDeviceType } from '../utils/device';
+import { getFcmToken } from '../utils/notifications';
 
 const { height } = Dimensions.get('window');
 const isLandscape = height < 500;
@@ -257,6 +259,7 @@ function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
 
   const handleLanguageChange = () => {
     Alert.alert(t('profile.changeLanguage'), '', [
@@ -276,12 +279,20 @@ function LoginScreen({ navigation }) {
 
     try {
       setLoading(true);
+      const deviceId = await getDeviceId();
+      const deviceType = getDeviceType();
+      const pushToken = await getFcmToken();
+
       const response = await loginUser({
         email: email.trim(),
         password,
+        deviceId,
+        deviceType,
+        pushToken
       });
 
       const user = response?.data?.user;
+
 
       if (!user?.isVerified) {
         // Navigate to OTP
@@ -309,6 +320,7 @@ function LoginScreen({ navigation }) {
       setLoading(false);
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -404,6 +416,7 @@ function LoginScreen({ navigation }) {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+
   );
 }
 

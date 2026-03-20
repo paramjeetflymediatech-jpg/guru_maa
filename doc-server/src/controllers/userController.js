@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 async function showUsers(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 9;
     const { users, pagination } = await getPaginatedUsers(page, limit);
 
     res.render("admin/users/list", {
@@ -259,7 +259,7 @@ async function handleSetupPassword(req, res) {
   res.redirect("/admin/login");
 }
 
-async function getPaginatedUsers(page = 1, limit = 10) {
+async function getPaginatedUsers(page = 1, limit = 9) {
   const skip = (page - 1) * limit;
   const users = await User.find({ role: { $ne: "admin" } })
     .sort({ createdAt: -1 })

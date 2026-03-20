@@ -16,7 +16,7 @@ const generateOtp = () =>
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, deviceId, deviceType, pushToken } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email & password required" });
@@ -35,6 +35,7 @@ exports.register = async (req, res) => {
       password,
       otp,
       isVerified: false,
+      devices: deviceId ? [{ deviceId, deviceType, pushToken, lastActive: new Date() }] : []
     });
 
     // send OTP email
@@ -73,6 +74,33 @@ exports.resendOtp = async (req, res) => {
   }
 };
 
+/* ================= UPDATE DEVICE ================= */
+exports.updateDevice = async (req, res) => {
+  try {
+    const { deviceId, deviceType, pushToken } = req.body;
+    const userId = req.userId; // From JWT middleware
+
+    if (!deviceId) return res.status(400).json({ message: "deviceId is required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const deviceIndex = user.devices.findIndex(d => d.deviceId === deviceId);
+    if (deviceIndex > -1) {
+      user.devices[deviceIndex].pushToken = pushToken || user.devices[deviceIndex].pushToken;
+      user.devices[deviceIndex].deviceType = deviceType || user.devices[deviceIndex].deviceType;
+      user.devices[deviceIndex].lastActive = new Date();
+    } else {
+      user.devices.push({ deviceId, deviceType, pushToken, lastActive: new Date() });
+    }
+
+    await user.save();
+    res.json({ success: true, message: "Device updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 /* ================= VERIFY OTP ================= */
 exports.verifyOtp = async (req, res) => {
   try {
@@ -99,6 +127,8 @@ exports.verifyOtp = async (req, res) => {
         name: user.name,
         email: user.email,
         isVerified: user.isVerified,
+        deviceId: user.deviceId,
+        deviceType: user.deviceType,
       },
     });
   } catch (err) {
@@ -110,7 +140,7 @@ exports.verifyOtp = async (req, res) => {
 /* ================= LOGIN ================= */
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceId, deviceType, pushToken } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: "Email & password required" });
     }
@@ -135,6 +165,22 @@ exports.login = async (req, res) => {
         },
       });
     }
+
+    // Update or Add device info on login
+    if (deviceId) {
+      const deviceIndex = user.devices.findIndex(d => d.deviceId === deviceId);
+      if (deviceIndex > -1) {
+        // Update existing device
+        user.devices[deviceIndex].pushToken = pushToken || user.devices[deviceIndex].pushToken;
+        user.devices[deviceIndex].deviceType = deviceType || user.devices[deviceIndex].deviceType;
+        user.devices[deviceIndex].lastActive = new Date();
+      } else {
+        // Add new device
+        user.devices.push({ deviceId, deviceType, pushToken, lastActive: new Date() });
+      }
+      await user.save();
+    }
+
     const token = createToken(user._id);
 
     res.json({
@@ -145,6 +191,7 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
         isVerified: user.isVerified,
+        devices: user.devices // Returning full devices list for push management
       },
     });
   } catch (err) {
