@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 // Check if Firebase service account file exists
-const serviceAccountPath = path.join(__dirname, "../../firebase-service-account.json");
+const serviceAccountPath = path.join(__dirname, "../../firebase-service-account.js");
 
 if (fs.existsSync(serviceAccountPath)) {
   const serviceAccount = require(serviceAccountPath);
