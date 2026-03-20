@@ -2,18 +2,29 @@ const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 
-// Check if Firebase service account file exists
-const serviceAccountPath = path.join(__dirname, "../../firebase-service-account.js");
+// Import the functions you need from the SDKs you need
+const { initializeApp } = require("firebase/app");
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-if (fs.existsSync(serviceAccountPath)) {
-  const serviceAccount = require(serviceAccountPath);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-  console.log("Firebase Admin Initialized");
-} else {
-  console.warn("⚠️ Firebase service account file not found. Push notifications will be disabled.");
-  console.warn("Please place your 'firebase-service-account.json' in the doc-server root directory.");
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: process.env.apiKey,
+  authDomain: process.env.authDomain,
+  projectId: process.env.projectId,
+  storageBucket: process.env.storageBucket,
+  messagingSenderId: process.env.messagingSenderId,
+  appId: process.env.appId,
+  measurementId: process.env.measurementId
+};
+
+// Initialize Firebase
+try {
+  initializeApp(firebaseConfig)
+  console.log("✅ Firebase initialized successfully");
+} catch (error) {
+  console.error("❌ Firebase initialization failed:", error);
 }
 
 /**
@@ -26,7 +37,7 @@ const sendPush = async (tokens, payload) => {
     console.error("❌ Firebase not initialized. Cannot send push.");
     return { success: false, message: "Firebase not initialized" };
   }
-  
+
   const validTokens = tokens.filter(t => !!t && t !== "MISSING");
   if (validTokens.length === 0) {
     console.warn("⚠️ No valid FCM tokens found for this push request.");
@@ -47,15 +58,15 @@ const sendPush = async (tokens, payload) => {
   try {
     const response = await admin.messaging().sendEachForMulticast(message);
     console.log(`✅ Push Result: ${response.successCount} success, ${response.failureCount} failure`);
-    
+
     if (response.failureCount > 0) {
       response.responses.forEach((resp, idx) => {
         if (!resp.success) {
-          console.error(`❌ Token [${validTokens[idx].substring(0,10)}...] Failure:`, resp.error.message);
+          console.error(`❌ Token [${validTokens[idx].substring(0, 10)}...] Failure:`, resp.error.message);
         }
       });
     }
-    
+
     return { success: true, count: response.successCount };
   } catch (error) {
     console.error("❌ Critical Error sending push:", error);
