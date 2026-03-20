@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config();
+const data =
 {
   "type": process.env.type,
   "project_id": process.env.project_id,
@@ -11,3 +14,5 @@
   "client_x509_cert_url": process.env.client_x509_cert_url,
   "universe_domain": process.env.universe_domain
 }
+
+module.exports = data;
