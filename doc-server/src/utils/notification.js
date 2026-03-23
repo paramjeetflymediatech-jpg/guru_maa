@@ -1,30 +1,19 @@
+const admin = require("firebase-admin");
 const path = require("path");
 const fs = require("fs");
 
-// Import the functions you need from the SDKs you need
-const { initializeApp } = require("firebase/app");
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// Check if Firebase service account file exists
+const serviceAccountPath = path.join(__dirname, "../../firebase-service-account.js");
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-let admin = null
-const firebaseConfig = {
-  apiKey: process.env.apiKey,
-  authDomain: process.env.authDomain,
-  projectId: process.env.projectId,
-  storageBucket: process.env.storageBucket,
-  messagingSenderId: process.env.messagingSenderId,
-  appId: process.env.appId,
-  measurementId: process.env.measurementId
-};
-
-// Initialize Firebase
-try {
-  admin = initializeApp(firebaseConfig)
-  console.log("✅ Firebase initialized successfully");
-} catch (error) {
-  console.error("❌ Firebase initialization failed:", error);
+if (fs.existsSync(serviceAccountPath)) {
+  const serviceAccount = require(serviceAccountPath);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log("Firebase Admin Initialized");
+} else {
+  console.warn("⚠️ Firebase service account file not found. Push notifications will be disabled.");
+  console.warn("Please place your 'firebase-service-account.json' in the doc-server root directory.");
 }
 
 /**

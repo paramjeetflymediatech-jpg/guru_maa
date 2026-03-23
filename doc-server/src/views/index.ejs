@@ -1,26 +1,180 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title><%= title %></title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guru Maa - Doc Server</title>
     <style>
-      .container {
-        display: flex;
-        justify-content: center; /* horizontal */
-        align-items: center; /* vertical */
-        height: 90vh; /* full viewport height */
-      }
-
-      .box {
-        /* background: lightcoral; */ 
-        padding: 10px;
-      }
+        :root {
+            --primary-color: #6200ee;
+            --secondary-color: #03dac6;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --bg-color: #f5f5f5;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .container {
+            flex: 1;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .hero {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .status-box {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: 600;
+            margin-top: 2rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+        .feature-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary-color);
+        }
+        .feature-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .admin-section {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            background: #f0f7ff;
+            border-radius: 8px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        footer {
+            background-color: #333;
+            color: #eee;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: auto;
+        }
+        .footer-links {
+            margin-bottom: 1.5rem;
+        }
+        .footer-links a {
+            color: #bbb;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 0.9rem;
+        }
+        .footer-links a:hover {
+            color: var(--white);
+            text-decoration: underline;
+        }
+        .copyright {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
+    <header>
+        <h2>Guru Maa Support System</h2>
+    </header>
+
     <div class="container">
-      <div class="box"><h3>API is working Fine</h3>
-      <h3><a href="/admin/login">Go to Admin</a></h3></div>
+        <div class="hero">
+            <h1>Welcome to Guru Maa</h1>
+            <p>Empowering your spiritual journey with daily wisdom, community connection, and seamless access to spiritual resources.</p>
+            <div class="status-box">✓ Support API is Online</div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>Secure Access</h3>
+                <p>Robust authentication ensures your profile and preferences are kept safe and synchronized across all your devices.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Push Notifications</h3>
+                <p>Stay updated with the latest events, live sessions, and daily quotes through our integrated notification system.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Modern Mobile App</h3>
+                <p>Full support for the latest Android 15 features, including immersive edge-to-edge displays.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Document Portal</h3>
+                <p>Easy access to PDFs, guides, and spiritual literature through our optimized document server.</p>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h3>Administrative Access</h3>
+            <p>Authorized personnel can manage documents and application settings from the portal.</p>
+            <a href="/admin/login" class="btn">Go to Admin Dashboard</a>
+        </div>
     </div>
-  </body>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="mailto:support@gurumaa.app">Contact Support</a>
+        </div>
+        <div class="copyright">
+            &copy; 2024 Guru Maa Application Platform. All rights reserved.
+        </div>
+    </footer>
+</body>
 </html>

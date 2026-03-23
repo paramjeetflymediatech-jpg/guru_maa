@@ -106,6 +106,10 @@ app.get("/", async (req, res) => {
   return res.render("index.ejs", { title: "Home" });
 });
 
+app.get("/privacy-policy", (req, res) => {
+  return res.render("privacy-policy.ejs", { title: "Privacy Policy" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
