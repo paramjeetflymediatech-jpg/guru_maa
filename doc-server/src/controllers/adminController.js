@@ -24,6 +24,8 @@ const {
   searchDocuments,
 } = require("../models/documentModel");
 const User = require("../models/userModel");
+const DeleteRequest = require("../models/deleteRequestModel");
+const { deleteUser } = require("./userController");
 const { sendPush } = require("../utils/notification");
 
 /**
@@ -123,6 +125,7 @@ async function showDashboard(req, res) {
       actions: [
         { icon: "➕", label: "Upload Document", link: "/admin/docs" },
         { icon: "📝", label: "API Docs", link: "/admin/api-docs" },
+        { icon: "🗑️", label: "Deletion Requests", link: "/admin/delete-requests" },
         { icon: "⚙️", label: "Settings", link: "/admin/settings" },
       ],
       recentDocs: recentDocs,
@@ -603,6 +606,70 @@ async function handleSearch(req, res) {
   }
 }
 
+async function showDeleteRequests(req, res) {
+  try {
+    const requests = await DeleteRequest.find()
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 });
+
+    res.render("admin/delete-requests", {
+      title: "Deletion Requests",
+      requests,
+      currentPage: "delete-requests",
+    });
+  } catch (err) {
+    console.error("Delete Requests Error:", err);
+    req.session.flash = { type: "error", message: "Error loading deletion requests." };
+    res.redirect("/admin/dashboard");
+  }
+}
+
+async function handleDeleteRequestAction(req, res) {
+  try {
+    const { requestId, action } = req.body;
+    console.log("[DEBUG_ADMIN_ACTION] RequestId:", requestId, "Action:", action);
+
+    if (!requestId || !action) {
+      req.session.flash = { type: "error", message: "Invalid request data." };
+      return res.redirect("/admin/delete-requests");
+    }
+
+    const request = await DeleteRequest.findById(requestId);
+    console.log("[DEBUG_ADMIN_ACTION] Request found:", request ? request._id : "None");
+
+    if (!request) {
+      req.session.flash = { type: "error", message: "Request not found." };
+      return res.redirect("/admin/delete-requests");
+    }
+
+    if (action === "approve") {
+      console.log("[DEBUG_ADMIN_ACTION] Approving deletion for user:", request.userId);
+      const userDeleted = await deleteUser(request.userId);
+      console.log("[DEBUG_ADMIN_ACTION] User deleted result:", userDeleted);
+
+      if (userDeleted) {
+        await DeleteRequest.findByIdAndDelete(requestId);
+        console.log("[DEBUG_ADMIN_ACTION] Deletion request removed.");
+        req.session.flash = { type: "success", message: "User account and request processed successfully." };
+      } else {
+        console.error("[DEBUG_ADMIN_ACTION] Failed to delete user record.");
+        req.session.flash = { type: "error", message: "Failed to delete user record in database." };
+      }
+    } else if (action === "reject") {
+      console.log("[DEBUG_ADMIN_ACTION] Rejecting request:", requestId);
+      request.status = "rejected";
+      await request.save();
+      req.session.flash = { type: "success", message: "Request rejected." };
+    }
+
+    res.redirect("/admin/delete-requests");
+  } catch (err) {
+    console.error("[DEBUG_ADMIN_ACTION_ERROR]", err);
+    req.session.flash = { type: "error", message: "System error: " + err.message };
+    res.redirect("/admin/delete-requests");
+  }
+}
+
 module.exports = {
   showLogin,
   handleLogin,
@@ -621,4 +688,6 @@ module.exports = {
   showEditDoc,
   handleDocUpdate,
   handleSearch,
+  showDeleteRequests,
+  handleDeleteRequestAction,
 };

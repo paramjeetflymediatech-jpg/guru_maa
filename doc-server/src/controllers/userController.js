@@ -321,4 +321,5 @@ module.exports = {
   apiDeleteUser,
   showSetupPassword,
   handleSetupPassword,
+  deleteUser,
 };

@@ -7,6 +7,7 @@ const path = require("path");
 const { PORT } = require("./src/config/config");
 const apiRoutes = require("./src/routes/apiRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
+const apiAuthController = require("./src/controllers/apiAuthController");
 const { DOCS_ROOT } = require("./src/models/documentModel");
 const connectDB = require("./src/config/db");
 
@@ -109,6 +110,12 @@ app.get("/", async (req, res) => {
 app.get("/privacy-policy", (req, res) => {
   return res.render("privacy-policy.ejs", { title: "Privacy Policy" });
 });
+
+app.get("/delete-request", (req, res) => {
+  return res.render("delete-request.ejs", { title: "Delete Account" });
+});
+
+app.post("/delete-request", apiAuthController.requestDeleteAccountByEmail);
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

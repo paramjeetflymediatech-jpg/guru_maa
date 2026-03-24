@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 
 const sendOtpEmail = async (to, otp) => {
   const mailOptions = {
-    from: `"Gurumaa App" <${process.env.EMAIL_USER}>`,
+    from: `"Gurumaa App" <${EMAIL_USER}>`,
     to,
     subject: "Your Gurumaa OTP Code",
     text: `Your OTP code is: ${otp}. It is valid for a few minutes.`,

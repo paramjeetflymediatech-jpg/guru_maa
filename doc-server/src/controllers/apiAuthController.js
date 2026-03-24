@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/userModel");
+const DeleteRequest = require("../models/deleteRequestModel");
 const { sendOtpEmail } = require("../utils/mailer");
 const { JWT_SECRET } = require("../config/config");
 
@@ -146,7 +147,7 @@ exports.login = async (req, res) => {
     }
     const user = await User.findOne({ email: email });
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) return res.status(400).json({ message: "User not found" });
     const valid = await bcrypt.compare(password, user.password);
   
     if (!valid) return res.status(400).json({ message: "Invalid credentials" });
@@ -274,3 +275,109 @@ exports.deleteAccount = async (req, res) => {
     res.status(500).json({ message: "Failed to delete account: " + err.message });
   }
 };
+
+/**
+ * Request account deletion
+ */
+exports.requestDeleteAccount = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { reason } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ status: "error", message: "Unauthorized" });
+    }
+
+    // Check if a pending request already exists
+    const existingRequest = await DeleteRequest.findOne({ userId, status: "pending" });
+    if (existingRequest) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "You already have a pending deletion request." 
+      });
+    }
+
+    // Create new request
+    const newRequest = new DeleteRequest({
+      userId,
+      reason: reason || "No reason provided",
+      status: "pending"
+    });
+
+    await newRequest.save();
+
+    console.log(`[DELETE_REQUEST] User ${userId} requested account deletion.`);
+
+    res.status(201).json({ 
+      status: "success", 
+      message: "Your deletion request has been submitted to the admin." 
+    });
+  } catch (error) {
+    console.error("[REQUEST_DELETE_ERROR]", error);
+    res.status(500).json({ status: "error", message: "Failed to submit deletion request" });
+  }
+};
+
+/**
+ * Request account deletion via email (for website)
+ */
+exports.requestDeleteAccountByEmail = async (req, res) => {
+  try {
+    const { email, reason } = req.body;
+    console.log("[DEBUG_WEB_DELETE] Email:", email, "Reason:", reason);
+
+    if (!email) {
+      req.session.flash = { type: "error", message: "Email is required." };
+      return res.redirect("/delete-request");
+    }
+
+    const user = await User.findOne({ email });
+    console.log("[DEBUG_WEB_DELETE] User found:", user ? user._id : "None");
+
+    if (!user) {
+      req.session.flash = { 
+        type: "error", 
+        message: "No account found with this email address." 
+      };
+      // Sticky data
+      req.session.formData = { email, reason };
+      return res.redirect("/delete-request");
+    }
+
+    // Check if a pending request already exists
+    const existingRequest = await DeleteRequest.findOne({ userId: user._id, status: "pending" });
+    console.log("[DEBUG_WEB_DELETE] Existing request:", existingRequest ? existingRequest._id : "None");
+
+    if (existingRequest) {
+      req.session.flash = { 
+        type: "error", 
+        message: "A pending deletion request already exists for this account." 
+      };
+      return res.redirect("/delete-request");
+    }
+
+    // Create new request
+    const newRequest = new DeleteRequest({
+      userId: user._id,
+      reason: reason || "Web request (no reason provided)",
+      status: "pending"
+    });
+
+    console.log("[DEBUG_WEB_DELETE] Saving new request for user:", user._id);
+    await newRequest.save();
+
+    console.log(`[WEB_DELETE_REQUEST] User ${user._id} (${email}) requested account deletion via web.`);
+
+    req.session.flash = { 
+      type: "success", 
+      message: "Your deletion request has been submitted successfully. Our team will review it shortly." 
+    };
+    res.redirect("/delete-request");
+  } catch (error) {
+    console.error("[WEB_REQUEST_DELETE_ERROR]", error);
+    req.session.flash = { type: "error", message: "Failed to submit request. Please try again later." };
+    res.redirect("/delete-request");
+  }
+};
+
+

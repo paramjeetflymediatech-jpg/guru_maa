@@ -11,12 +11,15 @@
 
     /* Gradient Colors */
     --gradient-primary: linear-gradient(135deg, #6366f1, #4f46e5);
-
   }
 
   body {
     margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
     background-color: #f1f5f9;
   }
 
@@ -207,32 +210,55 @@
 
 <div class="mobile-header">
   <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-  <span style="font-weight: 700; color: #4f46e5;">Guru Maa</span>
+  <span style="font-weight: 700; color: #4f46e5">Guru Maa</span>
 </div>
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
       <span
-        style="background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899); padding: 5px; border-radius: 8px;">🎓</span>
+        style="
+          background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899);
+          padding: 5px;
+          border-radius: 8px;
+        "
+        >🎓</span
+      >
       Guru Maa
     </div>
   </div>
 
   <nav class="sidebar-menu">
-    <a href="/admin/dashboard" class="sidebar-menu-item <%= currentPage === 'dashboard' ? 'active' : '' %>">
+    <a
+      href="/admin/dashboard"
+      class="sidebar-menu-item <%= currentPage === 'dashboard' ? 'active' : '' %>"
+    >
       <span>📊</span> Dashboard
     </a>
-    <a href="/admin/users" class="sidebar-menu-item <%= currentPage === 'users' ? 'active' : '' %>">
+    <a
+      href="/admin/users"
+      class="sidebar-menu-item <%= currentPage === 'users' ? 'active' : '' %>"
+    >
       <span>👥</span> Users
     </a>
-    <a href="/admin/docs" class="sidebar-menu-item <%= currentPage === 'docs' ? 'active' : '' %>">
+    <a
+      href="/admin/docs"
+      class="sidebar-menu-item <%= currentPage === 'docs' ? 'active' : '' %>"
+    >
       <span>📚</span> Documents
     </a>
-    <a href="/admin/categories" class="sidebar-menu-item <%= currentPage === 'categories' ? 'active' : '' %>">
+    <a
+      href="/admin/categories"
+      class="sidebar-menu-item <%= currentPage === 'categories' ? 'active' : '' %>"
+    >
       <span>🏷️</span> Categories
     </a>
-     
+    <a
+      href="/admin/delete-requests"
+      class="sidebar-menu-item <%= currentPage === 'delete-requests' ? 'active' : '' %>"
+    >
+      <span>🗑️</span> Deletion Requests
+    </a>
   </nav>
 
   <div class="sidebar-footer">

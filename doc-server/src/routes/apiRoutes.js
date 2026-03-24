@@ -9,6 +9,7 @@ const {
   resetPassword,
   updateDevice,
   deleteAccount,
+  requestDeleteAccount,
 } = require('../controllers/apiAuthController');
 
 const { listDocs, listCategories, trackReading } = require('../controllers/apiDocController');
@@ -25,6 +26,7 @@ router.post('/auth/forgot-password', forgotPassword);
 router.post('/auth/reset-password', resetPassword);
 router.post('/auth/update-device', apiAuthMiddleware, updateDevice);
 router.post('/auth/delete-account', apiAuthMiddleware, deleteAccount);
+router.post('/auth/request-delete-account', apiAuthMiddleware, requestDeleteAccount);
 
 /* ================= DOCUMENTS ================= */
 router.get('/docs', apiAuthMiddleware, listDocs);

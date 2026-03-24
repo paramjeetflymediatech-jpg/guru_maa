@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deletion Requests - Guru Maa Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-body: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', "Segoe UI", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 40px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #544FE8;
+            color: white;
+            padding: 16px 24px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge-pending { background: #fff7ed; color: #9a3412; }
+        .badge-approved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            font-size: 13px;
+        }
+
+        .btn-approve {
+            background: var(--success);
+            color: white;
+            margin-right: 8px;
+        }
+
+        .btn-reject {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .reason-text {
+            font-style: italic;
+            color: #4b5563;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <%- include('./layouts/sidebar', { currentPage: 'delete-requests' }) %>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1>Account Deletion Requests</h1>
+                    <p><%= requests.length %> requests pending review</p>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <% if (requests && requests.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Reason</th>
+                                <th>Requested At</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% requests.forEach(request => { %>
+                                <tr>
+                                    <td>
+                                        <div class="user-info">
+                                            <span class="user-name"><%= request.userId ? request.userId.name : 'Unknown User' %></span>
+                                            <span class="user-email"><%= request.userId ? request.userId.email : 'N/A' %></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="reason-text"><%= request.reason %></div>
+                                    </td>
+                                    <td>
+                                        <%= new Date(request.createdAt).toLocaleDateString() %>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-<%= request.status %>">
+                                            <%= request.status %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% if (request.status === 'pending') { %>
+                                            <div style="display: flex;">
+                                                <form action="/admin/delete-requests/action" method="POST" onsubmit="return confirm('APPROVE: This will PERMANENTLY delete the user account. Proceed?')">
+                                                    <input type="hidden" name="requestId" value="<%= request._id %>">
+                                                    <input type="hidden" name="action" value="approve">
+                                                    <button type="submit" class="btn btn-approve">Approve & Delete</button>
+                                                </form>
+                                                <form action="/admin/delete-requests/action" method="POST">
+                                                    <input type="hidden" name="requestId" value="<%= request._id %>">
+                                                    <input type="hidden" name="action" value="reject">
+                                                    <button type="submit" class="btn btn-reject">Reject</button>
+                                                </form>
+                                            </div>
+                                        <% } else { %>
+                                            <span style="color: grey; font-size: 12px;">Processed</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="text-align:center; padding: 60px 20px;">
+                        <div style="font-size:48px; margin-bottom:16px; opacity: 0.5;">🗑️</div>
+                        <h3>No deletion requests</h3>
+                        <p style="color:var(--text-muted);">When users request account deletion, they will appear here.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./layouts/flash-toast') %>
+</body>
+
+</html>

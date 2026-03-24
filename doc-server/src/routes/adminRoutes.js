@@ -18,6 +18,8 @@ const {
   showEditDoc,
   handleDocUpdate,
   handleSearch,
+  showDeleteRequests,
+  handleDeleteRequestAction,
 } = require("../controllers/adminController");
 
 const {
@@ -60,6 +62,10 @@ router.get("/categories", requireAdmin, showCategories);
 router.post("/categories/create", requireAdmin, handleCategoryCreate);
 router.post("/categories/update", requireAdmin, handleCategoryUpdate);
 router.post("/categories/delete", requireAdmin, handleCategoryDelete);
+
+// Deletion Requests (protected)
+router.get("/delete-requests", requireAdmin, showDeleteRequests);
+router.post("/delete-requests/action", requireAdmin, handleDeleteRequestAction);
 
 // User Management Routes (protected)
 router.get("/users", requireAdmin, showUsers);
