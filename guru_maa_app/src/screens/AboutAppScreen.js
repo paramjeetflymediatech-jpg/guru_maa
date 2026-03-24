@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 20,
+    marginBottom: 20,
     paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: colors.border,

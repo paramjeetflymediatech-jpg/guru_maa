@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 function AuthLoadingScreen({ navigation }) {
   useEffect(() => {
     const checkAuth = async () => {
@@ -17,9 +19,9 @@ function AuthLoadingScreen({ navigation }) {
   }, [navigation]);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator size="large" />
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -219,6 +219,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Logo from './logoscreen';
 import colors, { spacing, typography, radius } from '../constants/theme';
@@ -280,8 +281,7 @@ function RegisterScreen({ navigation }) {
     } catch (error) {
       Alert.alert(
         t('register.failed'),
-        error?.response?.data?.message ||
-          t('common.error')
+        error?.message || t('common.error')
       );
     } finally {
       setLoading(false);
@@ -289,10 +289,11 @@ function RegisterScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -365,7 +366,8 @@ function RegisterScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

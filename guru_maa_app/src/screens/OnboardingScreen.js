@@ -98,6 +98,7 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Logo from './logoscreen';
 import colors from '../constants/theme';
@@ -108,7 +109,7 @@ const isLandscape = height < 500;
 
 function OnboardingScreen({ navigation }) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Background decoration */}
       <View style={styles.topDecoration}>
         <View style={styles.circle1}></View>
@@ -189,7 +190,7 @@ function OnboardingScreen({ navigation }) {
       <View style={styles.bottomDecoration}>
         <View style={styles.bottomCircle}></View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

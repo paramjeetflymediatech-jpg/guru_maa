@@ -17,6 +17,7 @@ import { DOC_PATH, API_BASE_URL } from '@env';
 import { getAllDocs, getAllCategories } from '../api/doc.api';
 import colors, { spacing, typography, radius } from '../constants/theme';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Spiritual color palette
 const SAFFRON = '#FF9933';
@@ -269,28 +270,30 @@ function LibraryScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={filteredDocs}
-        keyExtractor={item => item._id}
-        renderItem={renderItem}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🪷</Text>
-            <Text style={styles.emptyText}>
-              {searchQuery ? t('library.noMatch') : t('library.noScriptures')}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {searchQuery ? t('library.tryDifferent') : t('library.checkBack')}
-            </Text>
-          </View>
-        }
-      />
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: CREAM }}>
+      <View style={styles.container}>
+        <FlatList
+          data={filteredDocs}
+          keyExtractor={item => item._id}
+          renderItem={renderItem}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>🪷</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? t('library.noMatch') : t('library.noScriptures')}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {searchQuery ? t('library.tryDifferent') : t('library.checkBack')}
+              </Text>
+            </View>
+          }
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -298,7 +301,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: CREAM,
-    paddingTop: 48,
   },
 
   /* ── HEADER ── */

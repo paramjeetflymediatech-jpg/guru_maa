@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import colors from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -101,60 +102,62 @@ function SplashScreen({ navigation }) {
       <Animated.View style={[styles.backgroundCircle, styles.circle1, { opacity: fadeAnim }]} />
       <Animated.View style={[styles.backgroundCircle, styles.circle2, { opacity: fadeAnim }]} />
       
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { scale: scaleAnim },
-            ],
-          },
-        ]}
-      >
-        <Image
-          source={require('../../assets/splash.jpg')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.textContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <Text style={styles.appName}>Gurumaa</Text>
-        <Text style={styles.tagline}>Spiritual Wisdom for Modern Life</Text>
-        <Text style={styles.subtitle}>Discover ancient wisdom for today's journey</Text>
-      </Animated.View>
-
-      {/* Get Started Button */}
-      <Animated.View
-        style={[
-          styles.buttonContainer,
-          {
-            opacity: buttonAnim,
-            transform: [
-              { translateY: Animated.multiply(buttonAnim, 30) },
-              { scale: buttonScale },
-            ],
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleGetStarted}
-          activeOpacity={0.8}
+      <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { scale: scaleAnim },
+              ],
+            },
+          ]}
         >
-          <Text style={styles.buttonText}>Get Started</Text>
-          <Text style={styles.buttonArrow}>→</Text>
-        </TouchableOpacity>
-      </Animated.View>
+          <Image
+            source={require('../../assets/splash.jpg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.textContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Text style={styles.appName}>Gurumaa</Text>
+          <Text style={styles.tagline}>Spiritual Wisdom for Modern Life</Text>
+          <Text style={styles.subtitle}>Discover ancient wisdom for today's journey</Text>
+        </Animated.View>
+
+        {/* Get Started Button */}
+        <Animated.View
+          style={[
+            styles.buttonContainer,
+            {
+              opacity: buttonAnim,
+              transform: [
+                { translateY: Animated.multiply(buttonAnim, 0) }, // Adjusted for SafeArea
+                { scale: buttonScale },
+              ],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleGetStarted}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>Get Started</Text>
+            <Text style={styles.buttonArrow}>→</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </SafeAreaView>
     </View>
   );
 }

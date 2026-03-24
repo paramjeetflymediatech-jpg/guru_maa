@@ -240,6 +240,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Logo from './logoscreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -314,7 +315,7 @@ function LoginScreen({ navigation }) {
         routes: [{ name: 'Main' }],
       });
     } catch (err) {
-      setError(err?.response?.data?.message || t('common.error'));
+      setError(err?.message || t('common.error'));
       console.log('Login error:', err?.message);
     } finally {
       setLoading(false);
@@ -323,10 +324,11 @@ function LoginScreen({ navigation }) {
 
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -415,8 +417,8 @@ function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
-
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

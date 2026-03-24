@@ -45,6 +45,9 @@
     "privacy": "Privacy Policy",
     "terms": "Terms & Conditions",
     "changeLanguage": "Change Language",
-    "logoutConfirm": "Are you sure you want to logout?"
+    "logoutConfirm": "Are you sure you want to logout?",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteSuccess": "Your account has been deleted successfully."
   }
 }

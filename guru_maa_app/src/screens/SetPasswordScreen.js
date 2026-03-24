@@ -197,6 +197,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { resetPassword } from '../api/auth.api';
 import colors from '../constants/theme';
@@ -242,9 +243,7 @@ function SetPasswordScreen({ navigation, route }) {
     } catch (error) {
       Alert.alert(
         'Error',
-        error?.response?.data?.message ||
-          error?.message ||
-          'Unable to update password',
+        error?.message || 'Unable to update password'
       );
     } finally {
       setLoading(false);
@@ -252,10 +251,11 @@ function SetPasswordScreen({ navigation, route }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -311,7 +311,8 @@ function SetPasswordScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

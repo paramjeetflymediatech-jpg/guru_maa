@@ -160,6 +160,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors, { spacing, typography, radius } from '../constants/theme';
 import { version } from '../../package.json';
 import { useTranslation } from 'react-i18next';
+import { deleteAccount } from '../api/auth.api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 function ProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
@@ -212,6 +215,46 @@ function ProfileScreen({ navigation }) {
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      t('profile.deleteAccount'),
+      t('profile.deleteConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccount'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              console.log('[ProfileScreen] Triggering deleteAccount API...');
+              const response = await deleteAccount();
+              console.log(response,'ssssssssssssss')
+              if (response.data.success) {
+                await AsyncStorage.multiRemove(['token', 'user']);
+                Alert.alert(t('common.success'), t('profile.deleteSuccess'));
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Onboarding' }],
+                });
+              }
+            } catch (e) {
+              console.log('Delete account error detailed:', JSON.stringify(e, null, 2));
+              console.log('Error message:', e?.message);
+              console.log('Status code:', e?.status);
+              Alert.alert(
+                t('common.error'),
+                e?.message || 'Failed to delete account. Please try again.'
+              );
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleMenuItem = screen => {
     navigation.navigate(screen);
   };
@@ -225,7 +268,7 @@ function ProfileScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -283,6 +326,16 @@ function ProfileScreen({ navigation }) {
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
 
+        {/* Delete Account Button */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDeleteAccount}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.deleteIcon}>⚠️</Text>
+          <Text style={styles.deleteText}>{t('profile.deleteAccount')}</Text>
+        </TouchableOpacity>
+
         {/* Footer */}
         <Text style={styles.versionText}>Version {version}</Text>
       </ScrollView>
@@ -314,7 +367,7 @@ function ProfileScreen({ navigation }) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -347,7 +400,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: spacing.md,
-    paddingTop: 100,
     paddingBottom: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
@@ -503,6 +555,32 @@ const styles = StyleSheet.create({
 
   logoutText: {
     color: colors.textOnPrimary,
+    fontWeight: '700',
+    fontSize: typography.button,
+  },
+
+  // Delete Button
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.error,
+    minHeight: 56,
+    width: '100%',
+  },
+
+  deleteIcon: {
+    fontSize: 20,
+    marginRight: spacing.sm,
+  },
+
+  deleteText: {
+    color: colors.error,
     fontWeight: '700',
     fontSize: typography.button,
   },

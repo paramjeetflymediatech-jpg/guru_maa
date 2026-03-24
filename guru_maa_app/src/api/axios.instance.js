@@ -28,8 +28,12 @@ const API = axios.create({
 // 🔐 Attach token
 API.interceptors.request.use(async req => {
   const token = await AsyncStorage.getItem('token');
+  console.log(`[API Request] ${req.method?.toUpperCase()} ${req.url}`);
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
+    console.log('[API Request] Token attached');
+  } else {
+    console.log('[API Request] No token found');
   }
   return req;
 });

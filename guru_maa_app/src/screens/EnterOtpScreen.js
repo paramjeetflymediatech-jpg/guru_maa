@@ -216,6 +216,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { verifyOtp, resendOtp } from '../api/auth.api';
@@ -260,9 +261,7 @@ function EnterOtpScreen({ navigation, route }) {
     } catch (error) {
       Alert.alert(
         'Verification Failed',
-        error?.response?.data?.message ||
-          error?.message ||
-          'Invalid OTP. Please try again.'
+        error?.message || 'Invalid OTP. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -277,9 +276,7 @@ function EnterOtpScreen({ navigation, route }) {
     } catch (error) {
       Alert.alert(
         'Error',
-        error?.response?.data?.message ||
-          error?.message ||
-          'Unable to resend OTP.'
+        error?.message || 'Unable to resend OTP.'
       );
     } finally {
       setResending(false);
@@ -287,10 +284,11 @@ function EnterOtpScreen({ navigation, route }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -337,7 +335,8 @@ function EnterOtpScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

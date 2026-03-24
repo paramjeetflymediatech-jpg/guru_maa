@@ -166,6 +166,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { forgotPassword } from '../api/auth.api';
 import colors, { spacing, typography, radius } from '../constants/theme';
@@ -199,9 +200,7 @@ function ForgotPasswordScreen({ navigation }) {
     } catch (error) {
       Alert.alert(
         'Error',
-        error?.response?.data?.message ||
-          error?.message ||
-          'Unable to send email. Please try again.'
+        error?.message || 'Unable to send email. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -209,10 +208,11 @@ function ForgotPasswordScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -252,7 +252,8 @@ function ForgotPasswordScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

@@ -8,7 +8,7 @@ import 'react-native-gesture-handler'; // 🔴 MUST be first
 
 import React, { useState, useEffect } from 'react';
 import { StatusBar, useColorScheme, View, Text, StyleSheet } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -101,6 +101,8 @@ function TabIcon({ name, focused, color }) {
 // Main Tab Navigator - Contains the main app screens
 function MainTabs() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  
   return (
     <MainTab.Navigator
       screenOptions={({ route }) => ({
@@ -109,7 +111,13 @@ function MainTabs() {
         ),
         tabBarActiveTintColor: colors.tabActive,
         tabBarInactiveTintColor: colors.tabInactive,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar, 
+          { 
+            height: 60 + insets.bottom, 
+            paddingBottom: 8 + insets.bottom 
+          }
+        ],
         tabBarLabelStyle: styles.tabBarLabel,
         headerShown: false,
       })}
@@ -255,15 +263,15 @@ function RootNavigator() {
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
-  useEffect(() => {
-    // Initialize push notifications
-    const initNotifications = async () => {
-      await requestUserPermission();
-      notificationListener();
-      await syncToken(); // Automatically sync token if already logged in
-    };
-    initNotifications();
-  }, []);
+  // useEffect(() => {
+  //   // Initialize push notifications
+  //   const initNotifications = async () => {
+  //     await requestUserPermission();
+  //     notificationListener();
+  //     await syncToken(); // Automatically sync token if already logged in
+  //   };
+  //   initNotifications();
+  // }, []);
 
   // Debug: Log theme initialization
   console.log('[App] Initializing navigation theme, isDarkMode:', isDarkMode);

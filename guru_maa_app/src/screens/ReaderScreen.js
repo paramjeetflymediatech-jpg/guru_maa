@@ -243,7 +243,7 @@ function ReaderScreen({ route, navigation }) {
 
   /* ── Page controls (shared by pdf/text) ── */
   const renderPageControls = (total) => (
-    <View style={styles.pageControlsContainer}>
+    <View style={[styles.pageControlsContainer, { paddingBottom: 4 + insets.bottom }]}>
       {/* Progress bar */}
       <View style={styles.progressBarTrack}>
         <View style={[styles.progressBarFill, { width: progressWidth }]} />
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     minWidth: 40,
   },
   backButtonText: {
-    fontSize: 18,
+    fontSize: 28,
     color: GOLD_LIGHT,
     fontWeight: '700',
   },
@@ -510,13 +510,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#ffffffff',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: 14,
     color: GOLD_LIGHT,
     textAlign: 'center',
     fontStyle: 'italic',

@@ -246,3 +246,31 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: "Password reset failed" });
   }
 };
+
+/* ================= DELETE ACCOUNT ================= */
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.userId; // From JWT middleware
+    console.log('[DeleteAccount] Attempting deletion for UserID:', userId);
+    
+    if (!userId) {
+      console.error('[DeleteAccount] Error: No userId found in request');
+      return res.status(401).json({ message: "Unauthorized: No user ID" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+       console.error('[DeleteAccount] Error: User not found for ID:', userId);
+       return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log('[DeleteAccount] Found user:', user.email);
+    await User.findByIdAndDelete(userId);
+    console.log('[DeleteAccount] Successfully deleted user:', userId);
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (err) {
+    console.error("Delete Account error:", err);
+    res.status(500).json({ message: "Failed to delete account: " + err.message });
+  }
+};

@@ -44,3 +44,9 @@ export const profileUpdate = (id, data) => {
 export const updateDeviceToken = (data) => {
   return API.post('/auth/update-device', data);
 };
+
+/* ================= DELETE ACCOUNT ================= */
+export const deleteAccount = () => {
+  console.log('[auth.api] deleteAccount function called');
+  return API.post('/auth/delete-account');
+};
