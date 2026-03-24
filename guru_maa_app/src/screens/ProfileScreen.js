@@ -215,44 +215,8 @@ function ProfileScreen({ navigation }) {
     ]);
   };
 
-  const handleDeleteAccount = async () => {
-    Alert.alert(
-      t('profile.deleteAccount'),
-      t('profile.deleteConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('profile.deleteAccount'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              console.log('[ProfileScreen] Triggering deleteAccount API...');
-              const response = await deleteAccount();
-              console.log(response,'ssssssssssssss')
-              if (response.data.success) {
-                await AsyncStorage.multiRemove(['token', 'user']);
-                Alert.alert(t('common.success'), t('profile.deleteSuccess'));
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Onboarding' }],
-                });
-              }
-            } catch (e) {
-              console.log('Delete account error detailed:', JSON.stringify(e, null, 2));
-              console.log('Error message:', e?.message);
-              console.log('Status code:', e?.status);
-              Alert.alert(
-                t('common.error'),
-                e?.message || 'Failed to delete account. Please try again.'
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteAccount = () => {
+    navigation.navigate('DeleteAccountRequest');
   };
 
   const handleMenuItem = screen => {

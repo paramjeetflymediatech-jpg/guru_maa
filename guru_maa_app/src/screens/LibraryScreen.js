@@ -173,17 +173,7 @@ function LibraryScreen({ navigation }) {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <Text style={styles.loaderOm}>ॐ</Text>
-        <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 12 }} />
-        <Text style={styles.loadingText}>{t('library.loadingTexts')}</Text>
-      </View>
-    );
-  }
-
-  const renderHeader = () => (
+  const headerComponent = React.useMemo(() => (
     <View>
       {/* ── SPIRITUAL HEADER ── */}
       <View style={styles.header}>
@@ -267,7 +257,27 @@ function LibraryScreen({ navigation }) {
         ✦ {filteredDocs.length} {filteredDocs.length === 1 ? 'scripture' : 'scriptures'} found
       </Text>
     </View>
-  );
+  ), [
+    isSearchExpanded,
+    searchQuery,
+    showCategories,
+    selectedCategory,
+    categories,
+    filteredDocs.length,
+    i18n.language,
+    isSmallWidth,
+    t
+  ]);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <Text style={styles.loaderOm}>ॐ</Text>
+        <ActivityIndicator size="large" color={SAFFRON} style={{ marginTop: 12 }} />
+        <Text style={styles.loadingText}>{t('library.loadingTexts')}</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: CREAM }}>
@@ -278,7 +288,7 @@ function LibraryScreen({ navigation }) {
           renderItem={renderItem}
           refreshing={refreshing}
           onRefresh={onRefresh}
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={headerComponent}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

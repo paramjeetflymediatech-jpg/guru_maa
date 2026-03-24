@@ -50,3 +50,10 @@ export const deleteAccount = () => {
   console.log('[auth.api] deleteAccount function called');
   return API.post('/auth/delete-account');
 };
+
+/* ================= REQUEST DELETE ACCOUNT ================= */
+export const requestDeleteAccount = (data) => {
+  // reason
+  return API.post('/auth/request-delete-account', data);
+};
+

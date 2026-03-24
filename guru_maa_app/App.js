@@ -72,6 +72,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import AboutAppScreen from './src/screens/AboutAppScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsConditionsScreen from './src/screens/TermsConditionsScreen';
+import DeleteAccountRequestScreen from './src/screens/DeleteAccountRequestScreen';
 
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -115,7 +116,9 @@ function MainTabs() {
           styles.tabBar, 
           { 
             height: 60 + insets.bottom, 
-            paddingBottom: 8 + insets.bottom 
+            paddingBottom: 8 + insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right
           }
         ],
         tabBarLabelStyle: styles.tabBarLabel,
@@ -225,6 +228,16 @@ function RootNavigator() {
         name="Reader"
         component={ReaderScreen}
         options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="DeleteAccountRequest"
+        component={DeleteAccountRequestScreen}
+        options={{ 
+          title: 'Delete Account',
+          headerShown: true,
+          headerStyle: { backgroundColor: colors.headerBackground },
+          headerTintColor: colors.headerTint,
+        }}
       />
       <RootStack.Screen
         name="About"

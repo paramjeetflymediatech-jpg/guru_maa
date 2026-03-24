@@ -1,6 +1,6 @@
 {
-  "name": "gurumaa_app",
-  "displayName": "gurumaa_app",
+  "name": "gurumaa",
+  "displayName": "Guru Maa",
   "expo": {
     "orientation": "default",
     "plugins": [

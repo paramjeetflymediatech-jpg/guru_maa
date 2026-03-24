@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Pdf from 'react-native-pdf';
@@ -76,6 +77,8 @@ function ReaderScreen({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const isLandscape = windowWidth > windowHeight;
 
   const pdfRef = useRef(null);
 
@@ -416,7 +419,14 @@ function ReaderScreen({ route, navigation }) {
       {/* ── SPIRITUAL HEADER — hidden in full-screen ── */}
       {!isFullScreen && (
         <>
-          <View style={[styles.header, { paddingTop: insets.top || StatusBar.currentHeight || 0 }]}>
+          <View style={[
+            styles.header, 
+            { 
+              paddingTop: insets.top || StatusBar.currentHeight || 0,
+              paddingLeft: Math.max(insets.left, isLandscape ? 60 : 12),
+              paddingRight: Math.max(insets.right, isLandscape ? 60 : 12)
+            }
+          ]}>
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <Text style={styles.backButtonText}>←</Text>
             </TouchableOpacity>
@@ -453,7 +463,13 @@ function ReaderScreen({ route, navigation }) {
       {/* ── FLOATING EXIT FULL-SCREEN BUTTON ── */}
       {isFullScreen && (
         <TouchableOpacity
-          style={[styles.floatingExitButton, { top: insets.top + 12 }]}
+          style={[
+            styles.floatingExitButton, 
+            { 
+              top: insets.top + (isLandscape ? 8 : 12),
+              right: Math.max(insets.right, isLandscape ? 60 : 16)
+            }
+          ]}
           onPress={() => setIsFullScreen(false)}
           activeOpacity={0.8}
         >
@@ -550,6 +566,7 @@ const styles = StyleSheet.create({
 
   /* ── SPIRITUAL BORDER FRAME ── */
   spiritualFrame: {
+    marginHorizontal: 2, // Ensure edges aren't clipped on narrow screens
     borderRadius: radius.md,
     borderWidth: 1.5,
     borderColor: GOLD,
@@ -595,8 +612,8 @@ const styles = StyleSheet.create({
     color: SAFFRON,
     zIndex: 10,
   },
-  ornamentMT: { top: -7, alignSelf: 'center', left: '48%' },
-  ornamentMB: { bottom: -7, alignSelf: 'center', left: '48%' },
+  ornamentMT: { top: -7, alignSelf: 'center' },
+  ornamentMB: { bottom: -7, alignSelf: 'center' },
 
   /* ── PDF WRAPPER ── */
   pdfWrapper: {

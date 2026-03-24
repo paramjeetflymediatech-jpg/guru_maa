@@ -256,7 +256,7 @@ function EnterOtpScreen({ navigation, route }) {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Library' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (error) {
       Alert.alert(
