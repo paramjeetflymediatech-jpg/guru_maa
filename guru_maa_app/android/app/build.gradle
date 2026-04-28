@@ -82,8 +82,8 @@ android {
         applicationId "com.gurumaa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 3
+        versionName "1.0.2"
     }
     signingConfigs {
         debug {
@@ -126,4 +126,4 @@ dependencies {
     }
 }
 
-apply plugin: "com.google.gms.google-services"
+

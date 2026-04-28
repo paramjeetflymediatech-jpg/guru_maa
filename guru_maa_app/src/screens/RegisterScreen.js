@@ -225,7 +225,7 @@ import Logo from './logoscreen';
 import colors, { spacing, typography, radius } from '../constants/theme';
 import { useTranslation } from 'react-i18next';
 import { getDeviceId, getDeviceType } from '../utils/device';
-import { getFcmToken } from '../utils/notifications';
+
 import { registerUser } from '../api/auth.api';
 
 
@@ -263,7 +263,7 @@ function RegisterScreen({ navigation }) {
       setLoading(true);
       const deviceId = await getDeviceId();
       const deviceType = getDeviceType();
-      const pushToken = await getFcmToken();
+      const pushToken = null;
 
       const response = await registerUser({
         name: name.trim(),
@@ -292,7 +292,8 @@ function RegisterScreen({ navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     backgroundColor: colors.background,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.xxl || 40,
   },
 
   header: {
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
   },
 
   formWrapper: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },

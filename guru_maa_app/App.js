@@ -16,7 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 
 import colors from './src/constants/theme';
-import { notificationListener, requestUserPermission, syncToken } from './src/utils/notifications';
+
 
 // Error Boundary for catching rendering errors
 class ErrorBoundary extends React.Component {
